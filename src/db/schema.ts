@@ -51,6 +51,20 @@ export const productSpecs = mysqlTable('product_specs', {
     sortOrder: int('sort_order').default(0),
 });
 
+// Product variants for mobile shop (Color + Storage combinations)
+export const productVariants = mysqlTable('product_variants', {
+    id: int('id').autoincrement().primaryKey(),
+    productId: int('product_id').references(() => products.id).notNull(),
+    color: varchar('color', { length: 50 }),
+    storage: varchar('storage', { length: 50 }),
+    sku: varchar('sku', { length: 100 }),
+    price: decimal('price', { precision: 10, scale: 2 }),
+    comparePrice: decimal('compare_price', { precision: 10, scale: 2 }),
+    stock: int('stock').default(0),
+    isActive: boolean('is_active').default(true),
+    createdAt: timestamp('created_at').defaultNow(),
+});
+
 export const orders = mysqlTable('orders', {
     id: int('id').autoincrement().primaryKey(),
     orderNumber: varchar('order_number', { length: 50 }).notNull().unique(),
