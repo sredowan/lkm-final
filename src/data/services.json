@@ -1,0 +1,130 @@
+[
+    {
+        "id": "screen-repair",
+        "title": "Phone Screen Repair",
+        "description": "Cracked or broken screen? We replace screens for all major brands using high-quality parts at Lakemba Mobile King. Most repairs are done in 30 minutes.",
+        "icon": "Smartphone",
+        "slug": "phone-screen-repair",
+        "keywords": [
+            "Screen",
+            "LCD",
+            "Glass",
+            "Digitizer",
+            "Display"
+        ],
+        "details": "A broken screen can range from a hairline crack to a completely black display. At Lakemba Mobile King, we use premium replacement screens that match original specifications for color, brightness, and touch sensitivity. Whether you have an iPhone, Samsung, Oppo, or Pixel, our technicians can get your screen looking and working like new on the same day."
+    },
+    {
+        "id": "battery-replacement",
+        "title": "Battery Replacement",
+        "description": "Battery draining fast? Get a fresh battery replacement at Lakemba Mobile King to restore your device's power and longevity.",
+        "icon": "Battery",
+        "slug": "battery-replacement",
+        "keywords": [
+            "Battery"
+        ],
+        "details": "Phone batteries naturally degrade over time, leading to shorter usage hours and unexpected shutdowns. We provide high-capacity, tested batteries for all major smartphone models. Our replacement service includes a safety check of your charging circuit and a warranty on the new battery."
+    },
+    {
+        "id": "water-damage",
+        "title": "Water Damage Repair",
+        "description": "Dropped your phone in water? Bring it to Lakemba Mobile King immediately for our expert ultrasonic water damage treatment.",
+        "icon": "Droplets",
+        "slug": "water-damage-repair",
+        "keywords": [
+            "Water"
+        ],
+        "details": "Water damage is a race against time. Liquid starts corroding delicate internal components the moment it enters. Our specialists use advanced ultrasonic cleaning technology to remove minerals and corrosion from the logic board. We have a high success rate in rescuing devices from spills, rain, and submersion. Tip: Do NOT put it in rice; bring it to us as soon as possible."
+    },
+    {
+        "id": "charging-port",
+        "title": "Charging Port Repair",
+        "description": "Phone not charging? We can clean or replace your charging port quickly at Lakemba Mobile King.",
+        "icon": "Zap",
+        "slug": "charging-repair",
+        "keywords": [
+            "Charging",
+            "Port"
+        ],
+        "details": "If your phone only charges at a certain angle or not at all, the charging port might be clogged or damaged. We offer professional cleaning and full port replacements for Type-C, Lightning, and Micro-USB devices. Most charging port repairs are completed while you wait."
+    },
+    {
+        "id": "camera-repair",
+        "title": "Camera Replacement",
+        "description": "Blurry photos or broken lens? Lakemba Mobile King Repairs front and rear cameras for all major brands.",
+        "icon": "Camera",
+        "slug": "camera-replacement",
+        "keywords": [
+            "Camera",
+            "Lens",
+            "Wide",
+            "Telephoto"
+        ],
+        "details": "Don't let a cracked lens or a faulty sensor ruin your photos. We replace camera modules and external glass lenses for both front-facing and rear camera systems. We ensure that autofocus and image stabilization features work perfectly after the repair."
+    },
+    {
+        "id": "back-glass",
+        "title": "Back Glass Replacement",
+        "description": "Shattered back glass? Lakemba Mobile King restores your phone's look with precision laser replacement technology.",
+        "icon": "Smartphone",
+        "slug": "back-glass-replacement",
+        "keywords": [
+            "Back Glass",
+            "Rear Glass"
+        ],
+        "details": "Replacing the back glass on modern phones requires precision to avoid damaging internal components like wireless charging coils. At Lakemba Mobile King, we use state-of-the-art laser removal technology that allows us to replace just the glass without having to disassemble the entire phone, ensuring a factory-perfect fit and finish."
+    },
+    {
+        "id": "speaker-repair",
+        "title": "Speaker & Mic Repair",
+        "description": "Audio issues? At Lakemba Mobile King we fix loudspeakers, earpieces, and microphones with expert precision.",
+        "icon": "Speaker",
+        "slug": "speaker-repair",
+        "keywords": [
+            "Speaker",
+            "Mic",
+            "Earpiece",
+            "Audio"
+        ],
+        "details": "If you can't hear people during calls or your music sounds muffled, you may need a speaker or microphone repair. We clean and replace audio components to restore crystal-clear sound quality for all smartphone and tablet models."
+    },
+    {
+        "id": "buttons",
+        "title": "Button Repair",
+        "description": "Power or volume buttons stuck? The team at Lakemba Mobile King can fix or replace them in no time.",
+        "icon": "Power",
+        "slug": "power-button-repair-and-replacement",
+        "keywords": [
+            "Button",
+            "Power",
+            "Volume",
+            "Key"
+        ],
+        "details": "Stiff or non-responsive buttons can make your phone impossible to use. We repair and replace physical buttons and internal flex cables for power, volume, and home buttons, ensuring they have that satisfying 'click' feel again."
+    },
+    {
+        "id": "apple-watch",
+        "title": "Apple Watch Repairs",
+        "description": "Screen replacement, battery replacement, and other repairs for all Apple Watch series at Lakemba Mobile King.",
+        "icon": "Watch",
+        "slug": "apple-watch-repair",
+        "keywords": [
+            "Watch",
+            "iWatch"
+        ],
+        "details": "Apple Watches are delicate devices that require specialized tools for repair. We offer glass replacement and battery swaps for all series, from the original to the latest Ultra. Our repairs maintain the sleek look and functionality of your wearable."
+    },
+    {
+        "id": "in-home",
+        "title": "In Home Repairs",
+        "description": "Lakemba Mobile King comes to you! Professional repair service at your home or office in the Lakemba area.",
+        "icon": "Truck",
+        "slug": "in-home-repairs",
+        "keywords": [
+            "Home",
+            "Mobile",
+            "Onsite"
+        ],
+        "details": "Can't make it to our store? No problem. Our mobile repair unit can come to your location and perform most screen and battery repairs on the spot. Enjoy the same high-quality parts and expert service from the comfort of your home or office."
+    }
+]
