@@ -1,0 +1,74 @@
+[
+    {
+        "id": 1,
+        "author_name": "Sarah Jenkins",
+        "rating": 5,
+        "text": "Absolutely amazing service! I dropped my phone and shattered the screen completely. They fixed it in under 30 minutes and it looks brand new. The staff was super friendly and the price was very reasonable compared to other shops nearby. Highly recommend Lakemba Mobile King!",
+        "time": "2 days ago",
+        "profile_photo_url": "https://lh3.googleusercontent.com/a-/ALV-UjW..."
+    },
+    {
+        "id": 2,
+        "author_name": "Michael Chen",
+        "rating": 5,
+        "text": "Best repair shop in Lakemba. My iPad charging port was broken and Apple wanted to charge me a fortune. These guys fixed it for a fraction of the price and did a perfect job. They even cleaned the device for me. Will definitely come back for any future repairs.",
+        "time": "1 week ago",
+        "profile_photo_url": "https://lh3.googleusercontent.com/a-/ALV-UjX..."
+    },
+    {
+        "id": 3,
+        "author_name": "Ahmet Yilmaz",
+        "rating": 5,
+        "text": "Very professional and honest. I thought my battery was dead but they checked it and told me it was just a loose connector. Fixed it on the spot for a very small fee. Honest businesses like this are hard to find.",
+        "time": "3 weeks ago",
+        "profile_photo_url": ""
+    },
+    {
+        "id": 4,
+        "author_name": "Jessica T.",
+        "rating": 5,
+        "text": "Super fast turnaround! Dropped off my Samsung S21 for screen replacement at 2pm and picked it up by 3pm. Quality is top notch, touch works perfectly. Thanks guys!",
+        "time": "1 month ago",
+        "profile_photo_url": ""
+    },
+    {
+        "id": 5,
+        "author_name": "David Smith",
+        "rating": 5,
+        "text": "They saved my data! My phone fell in water and stopped turning on. I was devastated about losing my photos. They managed to repair the motherboard and get everything back. Forever grateful.",
+        "time": "2 months ago",
+        "profile_photo_url": ""
+    },
+    {
+        "id": 6,
+        "author_name": "Fatima A.",
+        "rating": 5,
+        "text": "Great selection of accessories and very helpful staff. Bought a rugged case and screen protector, they installed it perfectly without any bubbles.",
+        "time": "3 months ago",
+        "profile_photo_url": ""
+    },
+    {
+        "id": 7,
+        "author_name": "John Doe",
+        "rating": 5,
+        "text": "Quick, cheap, and reliable. What more could you ask for? Fixed my iPhone X screen in 20 mins.",
+        "time": "4 months ago",
+        "profile_photo_url": ""
+    },
+    {
+        "id": 8,
+        "author_name": "Emily R.",
+        "rating": 4,
+        "text": "Good service but had to wait a bit longer than expected because they were busy.",
+        "time": "5 months ago",
+        "profile_photo_url": ""
+    },
+    {
+        "id": 9,
+        "author_name": "Chris P.",
+        "rating": 5,
+        "text": "Legendary service. The technician really knows his stuff. Explained exactly what was wrong and how he would fix it.",
+        "time": "6 months ago",
+        "profile_photo_url": ""
+    }
+]

@@ -1,0 +1,34 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1768244567736,
+      "tag": "0000_skinny_veda",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1768909754172,
+      "tag": "0001_add_brands",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1769016980652,
+      "tag": "0002_grey_hannibal_king",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1769099800561,
+      "tag": "0003_concerned_terror",
+      "breakpoints": true
+    }
+  ]
+}

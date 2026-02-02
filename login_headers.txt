@@ -1,0 +1,19 @@
+HTTP/1.1 302 Found
+Date: Mon, 02 Feb 2026 16:41:06 GMT
+Content-Type: text/html; charset=UTF-8
+Transfer-Encoding: chunked
+Connection: keep-alive
+Server: cloudflare
+X-Powered-By: PHP/7.1.13
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, must-revalidate
+Pragma: no-cache
+X-Frame-Options: SAMEORIGIN
+Set-Cookie: frontend=o16pfcefcuaumfg8djor0rm0ft; expires=Tue, 03-Feb-2026 00:41:03 GMT; Max-Age=28800; path=/; domain=www.crazyparts.com.au; HttpOnly
+Set-Cookie: persistent_shopping_cart=deleted; expires=Thu, 01-Jan-1970 00:00:01 GMT; Max-Age=0; path=/; domain=www.crazyparts.com.au; HttpOnly
+Location: https://www.crazyparts.com.au/customer/account/
+X-Content-Type-Options: nosniff
+X-XSS-Protection: 1; mode=block
+cf-cache-status: DYNAMIC
+CF-RAY: 9c7b2241ba73d8ae-DAC
+
