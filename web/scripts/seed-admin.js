@@ -1,4 +1,5 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const { drizzle } = require('drizzle-orm/mysql2');
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcrypt');
@@ -16,7 +17,7 @@ const seed = async () => {
     try {
         await connection.execute(
             'INSERT INTO admins (name, email, password, role) VALUES (?, ?, ?, ?)',
-            ['Admin User', 'lakembamobileking@gmail.com', hashedPassword, 'admin']
+            ['Admin User', 'lakembamobikeking@gmail.com', hashedPassword, 'admin']
         );
         console.log('Admin user created successfully');
     } catch (error) {

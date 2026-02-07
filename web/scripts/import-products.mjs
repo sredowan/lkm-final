@@ -169,8 +169,27 @@ async function run() {
                 let rawPrice = priceMatch ? parseFloat(priceMatch[1].replace(',', '')) : 0;
                 let price = Math.max(0, rawPrice - 10);
 
+
                 const descMatch = html.match(/<div class="std">([\s\S]*?)<\/div>/) || html.match(/<div id="description"[\s\S]*?>([\s\S]*?)<\/div>/);
-                const description = descMatch ? descMatch[1].trim() : '';
+                let description = descMatch ? descMatch[1].trim() : '';
+
+                // Clean description
+                if (description) {
+                    // Remove scripts and styles
+                    description = description.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "");
+                    description = description.replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gim, "");
+                    // Remove CDATA
+                    description = description.replace(/\/\/<!\[CDATA\[[\s\S]*?\/\/\]\]>/gim, "");
+                    // Remove specific garbage
+                    description = description.replace(/To get better price,Learn more about[\s\S]*?VIP/gim, "");
+                    description = description.replace(/Availability:\s*In stock/gim, "");
+                    description = description.replace(/Register Business Partner account for better prices/gim, "");
+                    description = description.replace(/Add to Cart/gim, "");
+                    description = description.replace(/Having problem add to cart\?/gim, "");
+                    // Collapse whitespace
+                    description = description.replace(/\n\s*\n/g, "\n");
+                }
+
                 const skuMatch = html.match(/SKU: ([\w-]+)/);
                 const sku = skuMatch ? skuMatch[1] : `CP-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 

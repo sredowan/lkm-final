@@ -23,8 +23,6 @@ interface FeaturedBrandsProps {
 export default function FeaturedBrands({ brands, activeBrandSlug, onBrandChange }: FeaturedBrandsProps) {
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    // Removed internal fetching. Brands are now passed via props.
-
     const scroll = (direction: 'left' | 'right') => {
         if (scrollRef.current) {
             const { scrollLeft, clientWidth } = scrollRef.current;
@@ -35,44 +33,45 @@ export default function FeaturedBrands({ brands, activeBrandSlug, onBrandChange 
         }
     };
 
-
     return (
-        <section className="bg-white border-b border-gray-100">
+        <section className="bg-white border-b border-gray-100 py-8">
             <div className="container mx-auto px-4">
-                <div className="flex items-center gap-4 py-4">
-                    {/* Header for the section - subtle */}
-                    <div className="hidden lg:block pr-6 border-r border-gray-100 flex-shrink-0">
-                        <h2 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400">Shop By Brands</h2>
+                <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
+                    <h2 className="text-xl md:text-2xl font-bold text-brand-blue uppercase tracking-tight">
+                        Shop By Brand
+                    </h2>
+                    <div className="hidden md:flex gap-2">
+                        <button
+                            onClick={() => scroll('left')}
+                            className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-brand-blue hover:text-white transition-all shadow-sm"
+                        >
+                            <ChevronLeft className="w-5 h-5" />
+                        </button>
+                        <button
+                            onClick={() => scroll('right')}
+                            className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-brand-blue hover:text-white transition-all shadow-sm"
+                        >
+                            <ChevronRight className="w-5 h-5" />
+                        </button>
                     </div>
+                </div>
 
-                    {/* Navigation Arrows (Desktop) */}
-                    <button
-                        onClick={() => scroll('left')}
-                        className="hidden md:flex flex-shrink-0 w-8 h-8 rounded-full bg-gray-50 items-center justify-center text-gray-400 hover:bg-brand-blue hover:text-white transition-all"
-                    >
-                        <ChevronLeft className="w-4 h-4" />
-                    </button>
-
-                    {/* Brands Tab List */}
+                <div className="relative group">
                     <div
                         ref={scrollRef}
-                        className="flex-grow flex overflow-x-auto gap-4 md:gap-8 no-scrollbar scroll-smooth items-center px-2"
+                        className="flex overflow-x-auto gap-2 md:gap-4 no-scrollbar scroll-smooth pb-4 px-1"
                     >
-                        {/* "All" Tab */}
+                        {/* "All" Tab - Styled as a special card */}
                         <button
                             onClick={() => onBrandChange("")}
                             className={clsx(
-                                "flex-shrink-0 px-4 py-2 text-sm font-bold uppercase tracking-widest transition-all relative whitespace-nowrap h-12 flex items-center",
-                                !activeBrandSlug ? "text-brand-blue" : "text-gray-400 hover:text-gray-900"
+                                "flex-shrink-0 w-[19%] md:w-[9%] h-14 md:h-20 rounded-xl flex items-center justify-center text-[10px] md:text-sm font-bold uppercase tracking-widest transition-all duration-300 border-2",
+                                !activeBrandSlug
+                                    ? "bg-brand-blue text-white border-brand-blue shadow-lg scale-95 md:scale-105"
+                                    : "bg-white text-gray-500 border-gray-100 hover:border-brand-blue/30 hover:shadow-md"
                             )}
                         >
                             All
-                            {!activeBrandSlug && (
-                                <motion.div
-                                    layoutId="activeTab"
-                                    className="absolute bottom-0 left-0 right-0 h-1 bg-brand-yellow rounded-t-full"
-                                />
-                            )}
                         </button>
 
                         {brands.map((brand) => (
@@ -80,14 +79,17 @@ export default function FeaturedBrands({ brands, activeBrandSlug, onBrandChange 
                                 key={brand.id}
                                 onClick={() => onBrandChange(brand.slug)}
                                 className={clsx(
-                                    "flex-shrink-0 flex flex-col items-center justify-center p-2 min-w-[100px] h-12 transition-all relative group opacity-100"
+                                    "flex-shrink-0 w-[19%] md:w-[9%] h-14 md:h-20 bg-white rounded-xl border flex items-center justify-center transition-all duration-300 relative overflow-hidden group/brand",
+                                    activeBrandSlug === brand.slug
+                                        ? "border-brand-blue shadow-lg ring-1 ring-brand-blue/20 scale-95 md:scale-105"
+                                        : "border-gray-100 hover:border-brand-blue/30 hover:shadow-md hover:-translate-y-1"
                                 )}
                             >
-                                <div className="h-8 w-20 relative flex items-center justify-center">
+                                <div className="w-10 md:w-20 h-8 md:h-12 relative flex items-center justify-center grayscale group-hover/brand:grayscale-0 transition-all duration-500">
                                     <img
                                         src={brand.logo || ""}
                                         alt={brand.name}
-                                        className="max-h-full max-w-full object-contain transition-all duration-300"
+                                        className="max-h-full max-w-full object-contain"
                                         onError={(e) => {
                                             (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${brand.name}&background=random`;
                                         }}
@@ -95,30 +97,18 @@ export default function FeaturedBrands({ brands, activeBrandSlug, onBrandChange 
                                 </div>
                                 {activeBrandSlug === brand.slug && (
                                     <motion.div
-                                        layoutId="activeTab"
-                                        className="absolute bottom-0 left-0 right-0 h-1 bg-brand-yellow rounded-t-full"
+                                        layoutId="activeBrandIndicator"
+                                        className="absolute bottom-0 left-0 right-0 h-1 bg-brand-yellow"
                                     />
                                 )}
                             </button>
                         ))}
                     </div>
 
-                    {/* Navigation Arrows (Desktop) */}
-                    <button
-                        onClick={() => scroll('right')}
-                        className="hidden md:flex flex-shrink-0 w-8 h-8 rounded-full bg-gray-50 items-center justify-center text-gray-400 hover:bg-brand-blue hover:text-white transition-all"
-                    >
-                        <ChevronRight className="w-4 h-4" />
-                    </button>
-
-                    <div className="flex-shrink-0 pl-4 border-l border-gray-100 hidden sm:block">
-                        <Link href="/shop" className="text-brand-blue font-bold text-xs uppercase tracking-widest hover:underline whitespace-nowrap">Show All →</Link>
-                    </div>
+                    {/* Fade overlay on right for visual cue */}
+                    <div className="absolute top-0 right-0 bottom-4 w-24 bg-gradient-to-l from-white to-transparent pointer-events-none md:hidden" />
                 </div>
             </div>
-
-            {/* Grid display for brands as requested (2 col mobile, 5 col desktop) below the header if scrolling is not enough */}
-            {/* But user usually wants this in the Shop Page body if it's a "section" */}
 
             <style jsx>{`
                 .no-scrollbar::-webkit-scrollbar {

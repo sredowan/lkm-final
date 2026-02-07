@@ -6,17 +6,17 @@ import { motion } from 'framer-motion';
 
 export default function Hero() {
     return (
-        <section className="relative w-full min-h-[85vh] flex items-center bg-gray-900 overflow-hidden font-poppins">
+        <section className="relative w-full min-h-[85vh] flex items-center bg-brand-blue overflow-hidden font-poppins">
             {/* Background Image Layer */}
             <div
-                className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+                className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-20"
                 style={{
-                    backgroundImage: 'url("/hero-bg-premium.png")',
+                    backgroundImage: 'url("/hero-bg.jpg")', // Reverted to standard image if known, or keeping generic but low opacity
                 }}
             />
 
-            {/* Gradient Overlay - darker for better text readability */}
-            <div className="absolute inset-0 z-0 bg-gradient-to-r from-gray-900/95 via-gray-900/80 to-brand-blue/30" />
+            {/* Gradient Overlay */}
+            <div className="absolute inset-0 z-0 bg-gradient-to-r from-brand-blue via-brand-blue/90 to-brand-blue/80" />
 
             {/* Animated particles or subtle overlay effects could go here */}
 
@@ -30,12 +30,12 @@ export default function Hero() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6 }}
                         >
-                            <span className="inline-block py-1 px-3 rounded-full bg-brand-yellow/20 text-brand-yellow border border-brand-yellow/30 text-sm font-bold tracking-wider mb-4">
+                            <span className="inline-block py-1 px-3 rounded-full bg-brand-yellow text-brand-blue border border-brand-yellow text-sm font-bold tracking-wider mb-4">
                                 #1 RATED REPAIR SERVICE IN LAKEMBA
                             </span>
-                            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight">
+                            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight text-white">
                                 Expert Repairs <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow to-yellow-200">
+                                <span className="text-brand-yellow">
                                     Instant Solutions
                                 </span>
                             </h1>
@@ -50,7 +50,7 @@ export default function Hero() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.2 }}
-                            className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed"
+                            className="text-lg md:text-xl text-blue-100 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium"
                         >
                             We bring your devices back to life. Professional mobile, tablet, and laptop repairs with premium parts and warranty you can trust.
                         </motion.p>
@@ -63,13 +63,13 @@ export default function Hero() {
                         >
                             <Link
                                 href="/shop"
-                                className="w-full sm:w-auto px-8 py-4 bg-brand-yellow text-gray-900 rounded-xl font-bold hover:bg-white hover:scale-105 transition-all duration-300 shadow-[0_0_20px_rgba(255,193,7,0.4)] flex items-center justify-center gap-2"
+                                className="w-full sm:w-auto px-8 py-4 bg-brand-yellow text-brand-blue rounded-xl font-bold hover:bg-white hover:scale-105 transition-all duration-300 shadow-lg flex items-center justify-center gap-2"
                             >
                                 Shop Accessories
                             </Link>
                             <Link
                                 href="/contact"
-                                className="w-full sm:w-auto px-8 py-4 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-xl font-bold hover:bg-white/20 hover:border-white/40 transition-all duration-300 flex items-center justify-center"
+                                className="w-full sm:w-auto px-8 py-4 bg-transparent border-2 border-white text-white rounded-xl font-bold hover:bg-white hover:text-brand-blue transition-all duration-300 flex items-center justify-center"
                             >
                                 Locate Store
                             </Link>
@@ -79,18 +79,18 @@ export default function Hero() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ duration: 0.8, delay: 0.6 }}
-                            className="pt-8 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-sm font-medium text-gray-400"
+                            className="pt-8 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-sm font-medium text-blue-100"
                         >
-                            <div className="flex items-center gap-2 bg-gray-800/50 px-3 py-1.5 rounded-lg border border-gray-700">
-                                <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                            <div className="flex items-center gap-2 bg-blue-900/40 px-3 py-1.5 rounded-lg border border-blue-400/30">
+                                <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span>
                                 Open 7 Days
                             </div>
-                            <div className="flex items-center gap-2 bg-gray-800/50 px-3 py-1.5 rounded-lg border border-gray-700">
-                                <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                            <div className="flex items-center gap-2 bg-blue-900/40 px-3 py-1.5 rounded-lg border border-blue-400/30">
+                                <span className="w-2 h-2 rounded-full bg-blue-400"></span>
                                 6 Months Warranty
                             </div>
-                            <div className="flex items-center gap-2 bg-gray-800/50 px-3 py-1.5 rounded-lg border border-gray-700">
-                                <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                            <div className="flex items-center gap-2 bg-blue-900/40 px-3 py-1.5 rounded-lg border border-blue-400/30">
+                                <span className="w-2 h-2 rounded-full bg-purple-400"></span>
                                 30 Min Repairs
                             </div>
                         </motion.div>

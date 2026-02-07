@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
 import { products, productImages, productVariants } from '@/db/schema';
-import { desc, like, eq, and, or, lte, count, sql } from 'drizzle-orm';
+import { desc, like, eq, and, or, lte, count, sql, inArray } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
                 .from(productImages)
                 .where(and(
                     eq(productImages.isPrimary, true),
-                    sql`${productImages.productId} IN (${productIds.join(',')})`
+                    inArray(productImages.productId, productIds)
                 ));
         }
 

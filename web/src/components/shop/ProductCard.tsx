@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ShoppingCart, Heart, Zap, Star } from 'lucide-react';
+import { ShoppingCart, Zap, Star } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useRouter } from 'next/navigation';
 import VariantSelectionModal from './VariantSelectionModal';
@@ -39,7 +39,7 @@ export default function ProductCard({
 }: ProductCardProps) {
     const router = useRouter();
     const { addItem } = useCart();
-    const [isWishlisted, setIsWishlisted] = useState(false);
+
     const [showVariantModal, setShowVariantModal] = useState(false);
     const [modalMode, setModalMode] = useState<"cart" | "buy">("cart");
     const [imageLoaded, setImageLoaded] = useState(false);
@@ -84,105 +84,76 @@ export default function ProductCard({
         }
     };
 
-    const handleWishlist = (e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setIsWishlisted(!isWishlisted);
-    };
 
-    // Get badge info based on condition
-    const getBadge = () => {
-        if (condition === 'refurbished') return { text: 'Refurbished', color: 'bg-orange-500' };
-        if (condition === 'used') return { text: 'Pre-Owned', color: 'bg-purple-500' };
-        return { text: 'New', color: 'bg-emerald-500' };
-    };
 
-    const badge = getBadge();
+
     const comparePrice = Number(price) * 1.2;
     const discount = Math.round(((comparePrice - Number(price)) / comparePrice) * 100);
 
     return (
         <>
-            <div className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col h-full relative overflow-hidden">
-                {/* Condition Badge */}
-                <div className={`absolute top-3 left-3 z-10 ${badge.color} text-white text-[10px] font-bold px-2 py-1 rounded-md`}>
-                    {badge.text}
-                </div>
+            <div className="group bg-white rounded-3xl overflow-hidden border border-gray-100/50 hover:border-gray-200 transition-all duration-500 hover:-translate-y-1 flex flex-col h-full relative">
 
-                {/* Wishlist Button */}
-                <button
-                    onClick={handleWishlist}
-                    className={`absolute top-3 right-3 z-10 w-8 h-8 rounded-full flex items-center justify-center transition-all ${isWishlisted
-                        ? 'bg-red-500 text-white shadow-lg'
-                        : 'bg-white/90 text-gray-400 hover:text-red-500 hover:bg-white shadow-md'
-                        }`}
-                >
-                    <Heart className={`w-4 h-4 ${isWishlisted ? 'fill-current' : ''}`} />
-                </button>
+                {/* Image Section */}
+                <Link href={`/shop/${slug}`} className="block relative aspect-[4/5] overflow-hidden bg-gray-50">
+                    {/* Badges */}
 
-                {/* Clickable Image Container */}
-                <Link href={`/shop/${slug}`} className="block">
-                    <div className="relative aspect-[4/5] overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 cursor-pointer">
-                        {/* Loading skeleton */}
-                        {!imageLoaded && (
-                            <div className="absolute inset-0 bg-gray-100 animate-pulse" />
-                        )}
-                        <img
-                            src={displayImage}
-                            alt={name}
-                            onLoad={() => setImageLoaded(true)}
-                            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
-                        />
+
+
+
+                    {/* Image */}
+                    {!imageLoaded && (
+                        <div className="absolute inset-0 bg-gray-100 animate-pulse" />
+                    )}
+                    <img
+                        src={displayImage}
+                        alt={name}
+                        onLoad={() => setImageLoaded(true)}
+                        className={`w-full h-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-700 ease-out ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                    />
+
+                    {/* Quick Action Overlay (Slide Up) */}
+                    <div className="absolute inset-x-0 bottom-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out z-20 bg-gradient-to-t from-white/90 to-transparent pt-12">
+                        <button
+                            onClick={handleAddToCart}
+                            className="w-full bg-brand-blue text-white h-11 rounded-xl flex items-center justify-center gap-2 font-bold text-sm shadow-lg hover:bg-blue-700 transition-colors transform active:scale-95"
+                        >
+                            <ShoppingCart className="w-4 h-4" />
+                            Add to Cart
+                        </button>
                     </div>
                 </Link>
 
-                {/* Content Container */}
-                <div className="p-3 flex flex-col flex-grow">
-                    {/* Brand */}
-                    <span className="text-[10px] text-brand-blue font-semibold uppercase tracking-wider mb-0.5">
-                        {brand || 'Premium Device'}
-                    </span>
+                {/* Details Section */}
+                <div className="p-5 flex flex-col flex-grow">
+                    <div className="mb-1">
+                        <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400 group-hover:text-brand-yellow transition-colors">
+                            {brand || 'LKM'}
+                        </span>
+                    </div>
 
-                    {/* Product Name */}
-                    <Link href={`/shop/${slug}`} className="block mb-1.5">
-                        <h3 className="font-semibold text-gray-900 text-xs group-hover:text-brand-blue transition-colors leading-snug line-clamp-2 min-h-[2rem]">
+                    <Link href={`/shop/${slug}`} className="block mb-2 group-hover:text-brand-blue transition-colors">
+                        <h3 className="font-bold text-gray-900 text-[13px] leading-snug" title={name}>
                             {name}
                         </h3>
                     </Link>
 
-
-
-                    {/* Price Section */}
-                    <div className="mt-auto">
-                        <div className="flex items-baseline gap-1.5 mb-2">
-                            <span className="text-lg font-black text-gray-900">
-                                ${Number(price).toFixed(2)}
-                            </span>
+                    <div className="mt-auto flex items-center justify-between border-t border-gray-50 pt-3">
+                        <div className="flex flex-col">
                             <span className="text-xs text-gray-400 line-through">
                                 ${comparePrice.toFixed(2)}
                             </span>
+                            <span className="text-lg font-black text-brand-blue">
+                                ${Number(price).toFixed(2)}
+                            </span>
                         </div>
-
-                        {/* Action Buttons */}
-                        <div className="flex gap-1.5">
-                            {/* Add to Cart Button */}
-                            <button
-                                onClick={handleAddToCart}
-                                className="flex-shrink-0 bg-gray-100 text-gray-700 w-9 h-9 rounded-lg flex items-center justify-center hover:bg-brand-blue hover:text-white transition-all"
-                                title="Add to Cart"
-                            >
-                                <ShoppingCart className="w-4 h-4" />
-                            </button>
-
-                            {/* Buy Now Button */}
-                            <button
-                                onClick={handleBuyNow}
-                                className="flex-1 bg-brand-blue text-white h-9 rounded-lg flex items-center justify-center gap-1.5 font-semibold text-xs hover:bg-blue-700 transition-all"
-                            >
-                                <Zap className="w-3.5 h-3.5" />
-                                Buy Now
-                            </button>
-                        </div>
+                        <button
+                            onClick={handleBuyNow}
+                            className="w-9 h-9 flex items-center justify-center rounded-lg bg-gray-50 text-gray-600 hover:bg-brand-yellow hover:text-brand-blue transition-colors"
+                            title="Buy Now"
+                        >
+                            <Zap className="w-4 h-4" />
+                        </button>
                     </div>
                 </div>
             </div>

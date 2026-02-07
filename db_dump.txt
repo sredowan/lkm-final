@@ -1,0 +1,263 @@
+--- Categories ---
+[
+  {
+    "id": 4,
+    "name": "Accessories",
+    "slug": "accessories",
+    "description": null,
+    "image": null,
+    "parent_id": null,
+    "is_active": 1,
+    "created_at": "2026-02-02T10:57:35.000Z",
+    "updated_at": "2026-02-02T11:58:58.000Z"
+  },
+  {
+    "id": 5,
+    "name": "Mobile Accessories",
+    "slug": "Mobile Accessories",
+    "description": null,
+    "image": null,
+    "parent_id": 4,
+    "is_active": 1,
+    "created_at": "2026-02-02T10:57:35.000Z",
+    "updated_at": "2026-02-02T11:59:27.000Z"
+  },
+  {
+    "id": 6,
+    "name": "Chargers",
+    "slug": "chargers",
+    "description": null,
+    "image": null,
+    "parent_id": 5,
+    "is_active": 1,
+    "created_at": "2026-02-02T10:57:35.000Z",
+    "updated_at": "2026-02-02T10:57:35.000Z"
+  },
+  {
+    "id": 7,
+    "name": "Wireless Charger",
+    "slug": "Wireless-Charger",
+    "description": null,
+    "image": null,
+    "parent_id": 6,
+    "is_active": 1,
+    "created_at": "2026-02-02T11:00:45.000Z",
+    "updated_at": "2026-02-02T11:00:45.000Z"
+  },
+  {
+    "id": 8,
+    "name": "Cables",
+    "slug": "Cables",
+    "description": null,
+    "image": null,
+    "parent_id": 6,
+    "is_active": 1,
+    "created_at": "2026-02-02T11:43:33.000Z",
+    "updated_at": "2026-02-02T11:43:33.000Z"
+  },
+  {
+    "id": 9,
+    "name": "Power Banks",
+    "slug": "power-banks",
+    "description": null,
+    "image": null,
+    "parent_id": 6,
+    "is_active": 1,
+    "created_at": "2026-02-02T11:47:40.000Z",
+    "updated_at": "2026-02-02T11:47:40.000Z"
+  },
+  {
+    "id": 10,
+    "name": "Adapters",
+    "slug": "power-adapter",
+    "description": null,
+    "image": null,
+    "parent_id": 6,
+    "is_active": 1,
+    "created_at": "2026-02-02T11:47:51.000Z",
+    "updated_at": "2026-02-07T16:22:36.000Z"
+  },
+  {
+    "id": 11,
+    "name": "Wireless Charger Stand",
+    "slug": "wireless-charger-stand",
+    "description": null,
+    "image": null,
+    "parent_id": 7,
+    "is_active": 1,
+    "created_at": "2026-02-02T11:55:28.000Z",
+    "updated_at": "2026-02-02T11:55:28.000Z"
+  },
+  {
+    "id": 12,
+    "name": "Security Camera",
+    "slug": "Security-camera",
+    "description": null,
+    "image": null,
+    "parent_id": 4,
+    "is_active": 1,
+    "created_at": "2026-02-02T11:59:57.000Z",
+    "updated_at": "2026-02-02T11:59:57.000Z"
+  },
+  {
+    "id": 13,
+    "name": "Computer Accessories",
+    "slug": "computer-accessories",
+    "description": null,
+    "image": null,
+    "parent_id": 4,
+    "is_active": 1,
+    "created_at": "2026-02-02T12:03:37.000Z",
+    "updated_at": "2026-02-02T12:03:37.000Z"
+  },
+  {
+    "id": 14,
+    "name": "Laptop Accessories",
+    "slug": "Laptop-accessories",
+    "description": null,
+    "image": null,
+    "parent_id": 13,
+    "is_active": 1,
+    "created_at": "2026-02-02T12:03:58.000Z",
+    "updated_at": "2026-02-02T12:03:58.000Z"
+  },
+  {
+    "id": 16,
+    "name": "Cables",
+    "slug": "hdmi-cables",
+    "description": null,
+    "image": null,
+    "parent_id": 14,
+    "is_active": 1,
+    "created_at": "2026-02-02T12:04:33.000Z",
+    "updated_at": "2026-02-02T12:04:33.000Z"
+  },
+  {
+    "id": 17,
+    "name": "Car Accessories",
+    "slug": "car-accessories",
+    "description": null,
+    "image": null,
+    "parent_id": 4,
+    "is_active": 1,
+    "created_at": "2026-02-04T11:54:51.000Z",
+    "updated_at": "2026-02-04T11:54:51.000Z"
+  },
+  {
+    "id": 19,
+    "name": "Wall Chargers",
+    "slug": "wall-chargers",
+    "description": null,
+    "image": null,
+    "parent_id": 6,
+    "is_active": 1,
+    "created_at": "2026-02-06T15:10:03.000Z",
+    "updated_at": "2026-02-06T15:12:20.000Z"
+  },
+  {
+    "id": 20,
+    "name": "Power Bank",
+    "slug": "power-bank",
+    "description": null,
+    "image": null,
+    "parent_id": 5,
+    "is_active": 1,
+    "created_at": "2026-02-07T06:09:09.000Z",
+    "updated_at": "2026-02-07T09:54:21.000Z"
+  },
+  {
+    "id": 21,
+    "name": "Audio",
+    "slug": "audio",
+    "description": null,
+    "image": null,
+    "parent_id": 4,
+    "is_active": 1,
+    "created_at": "2026-02-07T16:07:58.000Z",
+    "updated_at": "2026-02-07T16:15:39.000Z"
+  }
+]
+
+--- Product Counts ---
+[
+  {
+    "name": "Accessories",
+    "slug": "accessories",
+    "product_count": 0
+  },
+  {
+    "name": "Mobile Accessories",
+    "slug": "Mobile Accessories",
+    "product_count": 0
+  },
+  {
+    "name": "Chargers",
+    "slug": "chargers",
+    "product_count": 7
+  },
+  {
+    "name": "Wireless Charger",
+    "slug": "Wireless-Charger",
+    "product_count": 15
+  },
+  {
+    "name": "Cables",
+    "slug": "Cables",
+    "product_count": 3
+  },
+  {
+    "name": "Power Banks",
+    "slug": "power-banks",
+    "product_count": 1
+  },
+  {
+    "name": "Adapters",
+    "slug": "power-adapter",
+    "product_count": 0
+  },
+  {
+    "name": "Wireless Charger Stand",
+    "slug": "wireless-charger-stand",
+    "product_count": 0
+  },
+  {
+    "name": "Security Camera",
+    "slug": "Security-camera",
+    "product_count": 0
+  },
+  {
+    "name": "Computer Accessories",
+    "slug": "computer-accessories",
+    "product_count": 0
+  },
+  {
+    "name": "Laptop Accessories",
+    "slug": "Laptop-accessories",
+    "product_count": 0
+  },
+  {
+    "name": "Cables",
+    "slug": "hdmi-cables",
+    "product_count": 1
+  },
+  {
+    "name": "Car Accessories",
+    "slug": "car-accessories",
+    "product_count": 28
+  },
+  {
+    "name": "Wall Chargers",
+    "slug": "wall-chargers",
+    "product_count": 31
+  },
+  {
+    "name": "Power Bank",
+    "slug": "power-bank",
+    "product_count": 69
+  },
+  {
+    "name": "Audio",
+    "slug": "audio",
+    "product_count": 71
+  }
+]

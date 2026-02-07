@@ -24,7 +24,7 @@ type Product = {
     imageUrl?: string;
     primaryImage?: string;
     brand?: string;
-    slug?: string;
+    slug: string;
     condition?: string;
     isFeatured?: boolean;
     isTopSelling?: boolean;
@@ -92,23 +92,23 @@ export default function ShopClient({ initialBrands }: ShopClientProps) {
                 {/* 1. Main Hero Slider */}
                 <StoreHero />
 
-                {/* 2. Shop by Brands (Interactive Tabs) */}
+                {/* 2. Featured Categories */}
+                <FeaturedCategories />
+
+                {/* 3. Shop by Brands (Interactive Tabs) */}
                 <FeaturedBrands
                     brands={initialBrands}
                     activeBrandSlug={activeBrandSlug}
                     onBrandChange={setActiveBrandSlug}
                 />
 
-                {/* 3. Products Section (related to brand filtering above) */}
+                {/* 4. Products Section (related to brand filtering above) */}
                 <ProductScroller
                     title={brandName ? `${brandName} Products` : "Featured Products"}
                     products={featuredProducts}
                     viewAllLink={activeBrandSlug ? `/products-view?brand=${activeBrandSlug}` : "/products-view"}
                     hideArrows={true}
                 />
-
-                {/* 4. Featured Categories */}
-                <FeaturedCategories />
 
 
                 {/* 5. Top Selling Items Section */}

@@ -2,13 +2,24 @@ import Link from "next/link";
 
 import ProductDetail from "@/components/shop/ProductDetail";
 
+import { headers } from 'next/headers';
+
 async function getProduct(slug: string) {
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
-    const res = await fetch(`${baseUrl}/api/products/${slug}`, {
-        cache: 'no-store'
-    });
-    if (!res.ok) return undefined;
-    return res.json();
+    const headersList = await headers();
+    const host = headersList.get('host');
+    const protocol = process.env.NODE_ENV === 'development' ? 'http' : 'https';
+    const baseUrl = `${protocol}://${host}`;
+
+    try {
+        const res = await fetch(`${baseUrl}/api/products/${slug}`, {
+            cache: 'no-store'
+        });
+        if (!res.ok) return undefined;
+        return res.json();
+    } catch (error) {
+        console.error("Error fetching product:", error);
+        return undefined;
+    }
 }
 
 export default async function ProductPage(props: { params: Promise<{ id: string }> }) {
