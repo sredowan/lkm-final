@@ -1,4 +1,5 @@
 import { mysqlTable, serial, varchar, text, decimal, int, boolean, timestamp } from "drizzle-orm/mysql-core";
+import { relations } from "drizzle-orm";
 
 export const categories = mysqlTable('categories', {
     id: int('id').autoincrement().primaryKey(),
@@ -30,6 +31,7 @@ export const products = mysqlTable('products', {
     isFeatured: boolean('is_featured').default(false),
     metaTitle: varchar('meta_title', { length: 255 }),
     metaDescription: text('meta_description'),
+    tags: varchar('tags', { length: 512 }),
     createdAt: timestamp('created_at').defaultNow(),
     updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
 });
@@ -51,18 +53,39 @@ export const productSpecs = mysqlTable('product_specs', {
     sortOrder: int('sort_order').default(0),
 });
 
-// Product variants for mobile shop (Color + Storage combinations)
+// Product variants system
+export const variantTypes = mysqlTable('variant_types', {
+    id: int('id').autoincrement().primaryKey(),
+    name: varchar('name', { length: 100 }).notNull(),
+    isActive: boolean('is_active').default(true),
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
+});
+
+export const variantOptions = mysqlTable('variant_options', {
+    id: int('id').autoincrement().primaryKey(),
+    typeId: int('type_id').references(() => variantTypes.id).notNull(),
+    value: varchar('value', { length: 100 }).notNull(),
+    createdAt: timestamp('created_at').defaultNow(),
+});
+
 export const productVariants = mysqlTable('product_variants', {
     id: int('id').autoincrement().primaryKey(),
     productId: int('product_id').references(() => products.id).notNull(),
-    color: varchar('color', { length: 50 }),
-    storage: varchar('storage', { length: 50 }),
+    name: varchar('name', { length: 255 }), // e.g. "Color: Red, Size: XL"
     sku: varchar('sku', { length: 100 }),
     price: decimal('price', { precision: 10, scale: 2 }),
     comparePrice: decimal('compare_price', { precision: 10, scale: 2 }),
     stock: int('stock').default(0),
+    imageUrl: varchar('image_url', { length: 255 }),
     isActive: boolean('is_active').default(true),
     createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const productVariantOptions = mysqlTable('product_variant_options', {
+    id: int('id').autoincrement().primaryKey(),
+    variantId: int('variant_id').references(() => productVariants.id).notNull(),
+    optionId: int('option_id').references(() => variantOptions.id).notNull(),
 });
 
 export const orders = mysqlTable('orders', {
@@ -140,6 +163,12 @@ export const admins = mysqlTable('admins', {
     role: varchar('role', { length: 50 }).default('admin'), // admin, superadmin
     isActive: boolean('is_active').default(true),
     lastLogin: timestamp('last_login'),
+    createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const globalTags = mysqlTable('global_tags', {
+    id: int('id').autoincrement().primaryKey(),
+    name: varchar('name', { length: 100 }).notNull().unique(),
     createdAt: timestamp('created_at').defaultNow(),
 });
 
@@ -224,3 +253,154 @@ export const customers = mysqlTable('customers', {
     createdAt: timestamp('created_at').defaultNow(),
     updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
 });
+
+// Relational Definitions
+export const productsRelations = relations(products, ({ many, one }) => ({
+    category: one(categories, {
+        fields: [products.categoryId],
+        references: [categories.id],
+    }),
+    images: many(productImages),
+    specs: many(productSpecs),
+    variants: many(productVariants),
+}));
+
+export const categoriesRelations = relations(categories, ({ many, one }) => ({
+    parent: one(categories, {
+        fields: [categories.parentId],
+        references: [categories.id],
+        relationName: "category_parent",
+    }),
+    children: many(categories, {
+        relationName: "category_parent",
+    }),
+    products: many(products),
+}));
+
+export const productImagesRelations = relations(productImages, ({ one }) => ({
+    product: one(products, {
+        fields: [productImages.productId],
+        references: [products.id],
+    }),
+}));
+
+export const productSpecsRelations = relations(productSpecs, ({ one }) => ({
+    product: one(products, {
+        fields: [productSpecs.productId],
+        references: [products.id],
+    }),
+}));
+
+export const variantTypesRelations = relations(variantTypes, ({ many }) => ({
+    options: many(variantOptions),
+}));
+
+export const variantOptionsRelations = relations(variantOptions, ({ one, many }) => ({
+    type: one(variantTypes, {
+        fields: [variantOptions.typeId],
+        references: [variantTypes.id],
+    }),
+    productVariants: many(productVariantOptions),
+}));
+
+export const productVariantsRelations = relations(productVariants, ({ one, many }) => ({
+    product: one(products, {
+        fields: [productVariants.productId],
+        references: [products.id],
+    }),
+    options: many(productVariantOptions),
+}));
+
+export const productVariantOptionsRelations = relations(productVariantOptions, ({ one }) => ({
+    variant: one(productVariants, {
+        fields: [productVariantOptions.variantId],
+        references: [productVariants.id],
+    }),
+    option: one(variantOptions, {
+        fields: [productVariantOptions.optionId],
+        references: [variantOptions.id],
+    }),
+}));
+
+// Blog System
+export const blogCategories = mysqlTable('blog_categories', {
+    id: int('id').autoincrement().primaryKey(),
+    name: varchar('name', { length: 100 }).notNull(),
+    slug: varchar('slug', { length: 100 }).notNull().unique(),
+    description: text('description'),
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
+});
+
+export const blogPosts = mysqlTable('blog_posts', {
+    id: int('id').autoincrement().primaryKey(),
+    title: varchar('title', { length: 255 }).notNull(),
+    slug: varchar('slug', { length: 255 }).notNull().unique(),
+    excerpt: text('excerpt'),
+    content: text('content'), // JSON or HTML
+    featuredImageUrl: varchar('featured_image_url', { length: 512 }),
+    authorId: int('author_id').references(() => admins.id),
+    categoryId: int('category_id').references(() => blogCategories.id),
+    status: varchar('status', { length: 50 }).default('draft'), // draft, published
+    viewCount: int('view_count').default(0),
+
+    // SEO Fields
+    metaTitle: varchar('meta_title', { length: 255 }),
+    metaDescription: text('meta_description'),
+    canonicalUrl: varchar('canonical_url', { length: 512 }),
+    focusKeyword: varchar('focus_keyword', { length: 100 }),
+    secondaryKeywords: text('secondary_keywords'), // JSON array string
+    ogTitle: varchar('og_title', { length: 255 }),
+    ogDescription: text('og_description'),
+    ogImageUrl: varchar('og_image_url', { length: 512 }),
+
+    publishedAt: timestamp('published_at'),
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedAt: timestamp('updated_at').defaultNow().onUpdateNow(),
+    deletedAt: timestamp('deleted_at'), // Soft delete
+});
+
+export const blogTags = mysqlTable('blog_tags', {
+    id: int('id').autoincrement().primaryKey(),
+    name: varchar('name', { length: 100 }).notNull().unique(),
+    slug: varchar('slug', { length: 100 }).notNull().unique(),
+    createdAt: timestamp('created_at').defaultNow(),
+});
+
+export const blogPostTags = mysqlTable('blog_post_tags', {
+    id: int('id').autoincrement().primaryKey(),
+    postId: int('post_id').references(() => blogPosts.id).notNull(),
+    tagId: int('tag_id').references(() => blogTags.id).notNull(),
+});
+
+// Blog Relations
+export const blogPostsRelations = relations(blogPosts, ({ one, many }) => ({
+    author: one(admins, {
+        fields: [blogPosts.authorId],
+        references: [admins.id],
+    }),
+    category: one(blogCategories, {
+        fields: [blogPosts.categoryId],
+        references: [blogCategories.id],
+    }),
+    tags: many(blogPostTags),
+}));
+
+export const blogCategoriesRelations = relations(blogCategories, ({ many }) => ({
+    posts: many(blogPosts),
+}));
+
+export const blogTagsRelations = relations(blogTags, ({ many }) => ({
+    posts: many(blogPostTags),
+}));
+
+export const blogPostTagsRelations = relations(blogPostTags, ({ one }) => ({
+    post: one(blogPosts, {
+        fields: [blogPostTags.postId],
+        references: [blogPosts.id],
+    }),
+    tag: one(blogTags, {
+        fields: [blogPostTags.tagId],
+        references: [blogTags.id],
+    }),
+}));

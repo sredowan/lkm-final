@@ -14,8 +14,8 @@ export default function Footer() {
                             We provide royal treatment for your devices with expert technicians and quality parts.
                         </p>
                         <div className="flex space-x-4">
-                            <Link href="#" className="bg-gray-800 p-2 rounded-full hover:bg-brand-blue"><Facebook className="h-5 w-5" /></Link>
-                            <Link href="#" className="bg-gray-800 p-2 rounded-full hover:bg-brand-blue"><Instagram className="h-5 w-5" /></Link>
+                            <a href="https://www.facebook.com/lakemba.mobileking/" target="_blank" rel="noopener noreferrer" className="bg-gray-800 p-2 rounded-full hover:bg-brand-blue"><Facebook className="h-5 w-5" /></a>
+                            <a href="https://www.instagram.com/lakemba.mobileking/" target="_blank" rel="noopener noreferrer" className="bg-gray-800 p-2 rounded-full hover:bg-brand-blue"><Instagram className="h-5 w-5" /></a>
                         </div>
                     </div>
 
@@ -26,6 +26,8 @@ export default function Footer() {
                             <li><Link href="/" className="hover:text-brand-yellow">Home</Link></li>
                             <li><Link href="/services" className="hover:text-brand-yellow">Repairs</Link></li>
                             <li><Link href="/shop" className="hover:text-brand-yellow">Shop</Link></li>
+                            <li><Link href="/about" className="hover:text-brand-yellow">About Us</Link></li>
+                            <li><Link href="/blog" className="hover:text-brand-yellow">Blog</Link></li>
                             <li><Link href="/contact" className="hover:text-brand-yellow">Contact Us</Link></li>
                         </ul>
                     </div>

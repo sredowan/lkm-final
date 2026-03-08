@@ -72,12 +72,12 @@ export async function GET(request: Request) {
         // 4. Get Storage options (Requires join with variants)
         // We need products that match the base criteria, then find their variants' storage
         const storageResult = await db.select({
-            storage: productVariants.storage
+            storage: productVariants.name
         })
             .from(productVariants)
             .innerJoin(products, eq(productVariants.productId, products.id))
             .where(whereClause)
-            .groupBy(productVariants.storage);
+            .groupBy(productVariants.name);
 
         const availableStorage = storageResult.map(s => s.storage).filter(Boolean).sort((a, b) => {
             // Simple clean sort for storage if possible (GB/TB logic is hard, string sort is okay for now)

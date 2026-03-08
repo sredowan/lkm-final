@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { products, productImages, productVariants } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { products, productImages, productVariants, productVariantOptions, globalTags } from '@/db/schema';
+import { eq, inArray } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,12 +22,23 @@ export async function GET(
 
         const images = await db.select().from(productImages).where(eq(productImages.productId, productId));
 
-        // Try to fetch variants, gracefully handle if table doesn't exist
+        // Fetch variants and their options
         let variants: any[] = [];
         try {
-            variants = await db.select().from(productVariants).where(eq(productVariants.productId, productId));
+            const rawVariants = await db.select().from(productVariants).where(eq(productVariants.productId, productId));
+
+            // For each variant, fetch its linked options
+            variants = await Promise.all(rawVariants.map(async (v) => {
+                const linkedOptions = await db.select({ optionId: productVariantOptions.optionId })
+                    .from(productVariantOptions)
+                    .where(eq(productVariantOptions.variantId, v.id));
+                return {
+                    ...v,
+                    optionIds: linkedOptions.map(lo => lo.optionId)
+                };
+            }));
         } catch (variantError) {
-            console.warn('Could not fetch variants (table may not exist yet):', variantError);
+            console.warn('Could not fetch variants:', variantError);
         }
 
         return NextResponse.json({ product, images, variants });
@@ -65,7 +76,22 @@ export async function PUT(
             isFeatured: body.isFeatured ?? false,
             metaTitle: body.metaTitle || null,
             metaDescription: body.metaDescription || null,
+            tags: body.tags || null,
         }).where(eq(products.id, productId));
+
+        // Handle global tags persistence
+        if (body.tags) {
+            const tagList = body.tags.split(',').map((t: string) => t.trim()).filter(Boolean);
+            if (tagList.length > 0) {
+                for (const tag of tagList) {
+                    try {
+                        await db.insert(globalTags).values({ name: tag }).onDuplicateKeyUpdate({ set: { name: tag } });
+                    } catch (e) {
+                        // Ignore errors
+                    }
+                }
+            }
+        }
 
         // Handle images if provided
         if (body.images && Array.isArray(body.images)) {
@@ -88,23 +114,37 @@ export async function PUT(
 
         // Handle variants if provided
         if (body.variants && Array.isArray(body.variants)) {
-            // Delete existing variants
-            await db.delete(productVariants).where(eq(productVariants.productId, productId));
+            // Delete existing variants and their options
+            const existingVariants = await db.select({ id: productVariants.id }).from(productVariants).where(eq(productVariants.productId, productId));
+            if (existingVariants.length > 0) {
+                const variantIds = existingVariants.map(v => v.id);
+                await db.delete(productVariantOptions).where(inArray(productVariantOptions.variantId, variantIds));
+                await db.delete(productVariants).where(eq(productVariants.productId, productId));
+            }
 
             // Insert new variants
-            if (body.variants.length > 0) {
-                await db.insert(productVariants).values(
-                    body.variants.map((v: any) => ({
-                        productId,
-                        color: v.color || null,
-                        storage: v.storage || null,
-                        sku: v.sku || null,
-                        price: v.price || null,
-                        comparePrice: v.comparePrice || null,
-                        stock: v.stock || 0,
-                        isActive: v.isActive ?? true,
-                    }))
-                );
+            for (const v of body.variants) {
+                const variantResult = await db.insert(productVariants).values({
+                    productId,
+                    name: v.name || null,
+                    sku: v.sku || null,
+                    price: v.price || null,
+                    comparePrice: v.comparePrice || null,
+                    stock: v.stock || 0,
+                    imageUrl: v.imageUrl || null,
+                    isActive: v.isActive ?? true,
+                });
+                const newVariantId = variantResult[0].insertId;
+
+                // Link to options if provided
+                if (v.optionIds && Array.isArray(v.optionIds) && v.optionIds.length > 0) {
+                    await db.insert(productVariantOptions).values(
+                        v.optionIds.map((optId: number) => ({
+                            variantId: newVariantId,
+                            optionId: optId
+                        }))
+                    );
+                }
             }
         }
 

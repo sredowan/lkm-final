@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Search, ShoppingCart, Menu, Phone, ChevronDown, X, Facebook, Instagram } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import brandsData from "@/data/brands.json";
 import servicesData from "@/data/services.json";
 import { useCart } from "@/context/CartContext";
@@ -27,8 +27,11 @@ export default function Header({ className = '' }: { className?: string }) {
     const [isRepairOpen, setIsRepairOpen] = useState(false);
     const [isBrandsOpen, setIsBrandsOpen] = useState(false);
     const [isScrolled, setIsScrolled] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+
 
     const pathname = usePathname();
+    const router = useRouter();
     const isHome = pathname === '/';
 
     const navRef = useRef<HTMLDivElement>(null);
@@ -50,6 +53,16 @@ export default function Header({ className = '' }: { className?: string }) {
     }, [pathname]);
 
     const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+    const handleSearch = (e: React.FormEvent | React.KeyboardEvent) => {
+        if ('key' in e && e.key !== 'Enter') return;
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+            setIsMenuOpen(false);
+        }
+    };
+
 
     // Header transparency logic
     // Transparent only on Home, when at top.
@@ -82,10 +95,10 @@ export default function Header({ className = '' }: { className?: string }) {
 
                     {/* Right: Social Icons */}
                     <div className="flex items-center gap-4">
-                        <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="hover:text-brand-yellow transition">
+                        <a href="https://www.facebook.com/lakemba.mobileking/" target="_blank" rel="noopener noreferrer" className="hover:text-brand-yellow transition">
                             <Facebook className="h-4 w-4" />
                         </a>
-                        <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="hover:text-brand-yellow transition">
+                        <a href="https://www.instagram.com/lakemba.mobileking/" target="_blank" rel="noopener noreferrer" className="hover:text-brand-yellow transition">
                             <Instagram className="h-4 w-4" />
                         </a>
                         <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" className="hover:text-brand-yellow transition">
@@ -166,6 +179,8 @@ export default function Header({ className = '' }: { className?: string }) {
                                 </div>
                             </div>
 
+                            <Link href="/about" className="hover:text-brand-yellow transition">About Us</Link>
+                            <Link href="/blog" className="hover:text-brand-yellow transition">Blog</Link>
                             <Link href="/contact" className="hover:text-brand-yellow transition">Contact Us</Link>
                         </nav>
 
@@ -176,6 +191,9 @@ export default function Header({ className = '' }: { className?: string }) {
                                 <input
                                     type="text"
                                     placeholder="Search..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onKeyDown={handleSearch}
                                     className={clsx(
                                         "w-48 border rounded-full py-1.5 px-4 text-sm focus:outline-none focus:border-brand-blue transition",
                                         isTransparent
@@ -183,7 +201,9 @@ export default function Header({ className = '' }: { className?: string }) {
                                             : "bg-gray-50 border-gray-200 focus:bg-white"
                                     )}
                                 />
-                                <Search className={clsx("h-4 w-4 absolute right-3 top-2", isTransparent ? "text-white/60" : "text-gray-400")} />
+                                <button onClick={handleSearch} className="absolute right-3 top-2">
+                                    <Search className={clsx("h-4 w-4", isTransparent ? "text-white/60" : "text-gray-400")} />
+                                </button>
                             </div>
 
                             <Link href="/cart" className={clsx("relative hover:text-brand-yellow transition", isTransparent ? "text-white" : "text-gray-700")}>
@@ -222,9 +242,14 @@ export default function Header({ className = '' }: { className?: string }) {
                         <input
                             type="text"
                             placeholder="Search..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={handleSearch}
                             className="w-full border border-gray-200 rounded-lg py-3 px-4 focus:outline-none focus:border-brand-blue bg-gray-50 text-gray-900"
                         />
-                        <Search className="h-5 w-5 absolute right-3 top-3.5 text-gray-400" />
+                        <button onClick={handleSearch} className="absolute right-3 top-3.5">
+                            <Search className="h-5 w-5 text-gray-400" />
+                        </button>
                     </div>
 
                     <div className="space-y-1">
@@ -268,6 +293,12 @@ export default function Header({ className = '' }: { className?: string }) {
                             </div>
                         </div>
 
+                        <Link href="/about" className="block py-3 text-lg text-gray-800 border-b border-gray-100" onClick={toggleMenu}>
+                            About Us
+                        </Link>
+                        <Link href="/blog" className="block py-3 text-lg text-gray-800 border-b border-gray-100" onClick={toggleMenu}>
+                            Blog
+                        </Link>
                         <Link href="/contact" className="block py-3 text-lg text-gray-800 border-b border-gray-100" onClick={toggleMenu}>
                             Contact Us
                         </Link>

@@ -11,7 +11,7 @@ const slides = [
         title: "Latest iPhone 15 Pro",
         subtitle: "Experience the Titanium Strength",
         cta: "Shop Now",
-        link: "/shop?category=iphone",
+        link: "/products?category=iphone",
         color: "bg-[#1c1c1c]"
     },
     {
@@ -20,7 +20,7 @@ const slides = [
         title: "Samsung Galaxy S24 Ultra",
         subtitle: "The Power of Galaxy AI",
         cta: "Explore More",
-        link: "/shop?brand=samsung",
+        link: "/products?brand=samsung",
         color: "bg-[#0b1424]"
     },
     {
@@ -29,7 +29,7 @@ const slides = [
         title: "Premium Accessories",
         subtitle: "Protect Your Style",
         cta: "View All",
-        link: "/shop?category=accessories",
+        link: "/products?category=accessories",
         color: "bg-brand-blue"
     }
 ];
@@ -76,9 +76,9 @@ export default function StoreHero() {
                             <h3 className="text-brand-yellow font-bold uppercase tracking-widest text-sm mb-4">New Arrival</h3>
                             <h2 className="text-4xl md:text-7xl font-bold mb-6 leading-tight">{slides[current].title}</h2>
                             <p className="text-xl md:text-2xl mb-10 opacity-90 font-light">{slides[current].subtitle}</p>
-                            <button className="bg-brand-yellow text-brand-blue px-10 py-4 rounded-full font-bold text-lg hover:bg-white hover:scale-105 transition-all shadow-xl">
+                            <a href={slides[current].link} className="bg-brand-yellow text-brand-blue px-10 py-4 rounded-full font-bold text-lg hover:bg-white hover:scale-105 transition-all shadow-xl inline-block mt-2">
                                 {slides[current].cta}
-                            </button>
+                            </a>
                         </motion.div>
                     </div>
                 </motion.div>

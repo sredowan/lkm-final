@@ -46,7 +46,7 @@ function CategoryItem({ category, size = 'desktop' }: { category: Category; size
 
     return (
         <Link
-            href={`/products-view?category=${category.slug}`}
+            href={`/products?category=${category.slug}`}
             className={`group flex flex-col items-center justify-center ${padding} rounded-xl transition-all duration-300 cursor-pointer`}
             aria-label={`Browse ${category.name}`}
         >

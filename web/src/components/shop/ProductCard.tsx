@@ -126,11 +126,13 @@ export default function ProductCard({
 
                 {/* Details Section */}
                 <div className="p-5 flex flex-col flex-grow">
-                    <div className="mb-1">
-                        <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400 group-hover:text-brand-yellow transition-colors">
-                            {brand || 'LKM'}
-                        </span>
-                    </div>
+                    {brand && (
+                        <div className="mb-1">
+                            <span className="text-[10px] uppercase tracking-widest font-bold text-gray-400 group-hover:text-brand-yellow transition-colors">
+                                {brand}
+                            </span>
+                        </div>
+                    )}
 
                     <Link href={`/shop/${slug}`} className="block mb-2 group-hover:text-brand-blue transition-colors">
                         <h3 className="font-bold text-gray-900 text-[13px] leading-snug" title={name}>

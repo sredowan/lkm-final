@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { products } from '@/db/schema';
-import { inArray, sql } from 'drizzle-orm';
+import { products, globalTags } from '@/db/schema';
+import { inArray, sql, eq } from 'drizzle-orm';
 
 export async function POST(request: NextRequest) {
     try {
@@ -94,6 +94,65 @@ export async function POST(request: NextRequest) {
                 await db.update(products)
                     .set({ isFeatured })
                     .where(inArray(products.id, ids));
+                updateCount = ids.length;
+                break;
+
+            case 'addTags':
+                // Add specific tags to all selected products
+                if (!value || typeof value !== 'string') {
+                    return NextResponse.json({ error: 'Invalid tags value' }, { status: 400 });
+                }
+                const newTagsToAdd = value.split(',').map(t => t.trim()).filter(Boolean);
+                if (newTagsToAdd.length === 0) {
+                    return NextResponse.json({ error: 'No valid tags provided' }, { status: 400 });
+                }
+
+                // We need to fetch each product to merge tags
+                const productsToUpdateAdd = await db.select({ id: products.id, tags: products.tags })
+                    .from(products)
+                    .where(inArray(products.id, ids));
+
+                for (const product of productsToUpdateAdd) {
+                    const currentTags = product.tags ? product.tags.split(',').map(t => t.trim()).filter(Boolean) : [];
+                    const updatedTags = Array.from(new Set([...currentTags, ...newTagsToAdd]));
+                    await db.update(products)
+                        .set({ tags: updatedTags.join(', ') })
+                        .where(eq(products.id, product.id));
+                }
+
+                // Also sync with global tags
+                for (const tag of newTagsToAdd) {
+                    try {
+                        await db.insert(globalTags).values({ name: tag }).onDuplicateKeyUpdate({ set: { name: tag } });
+                    } catch (e) { /* Ignore */ }
+                }
+
+                updateCount = ids.length;
+                break;
+
+            case 'removeTags':
+                // Remove specific tags from all selected products
+                if (!value || typeof value !== 'string') {
+                    return NextResponse.json({ error: 'Invalid tags value' }, { status: 400 });
+                }
+                const tagsToRemove = value.split(',').map(t => t.trim()).filter(Boolean);
+                if (tagsToRemove.length === 0) {
+                    return NextResponse.json({ error: 'No valid tags provided' }, { status: 400 });
+                }
+
+                const productsToUpdateRemove = await db.select({ id: products.id, tags: products.tags })
+                    .from(products)
+                    .where(inArray(products.id, ids));
+
+                for (const product of productsToUpdateRemove) {
+                    if (!product.tags) continue;
+                    const currentTags = product.tags.split(',').map(t => t.trim()).filter(Boolean);
+                    const updatedTags = currentTags.filter(t => !tagsToRemove.includes(t));
+                    await db.update(products)
+                        .set({ tags: updatedTags.length > 0 ? updatedTags.join(', ') : null })
+                        .where(eq(products.id, product.id));
+                }
+
                 updateCount = ids.length;
                 break;
 

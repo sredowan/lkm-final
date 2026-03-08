@@ -1,7 +1,7 @@
 import { db } from '@/db';
-import { brands } from '@/db/schema';
+import { brands, categories } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import ShopClient from "@/components/shop/ShopClient";
+import ShopLandingClient from "@/components/shop/ShopLandingClient";
 import { brandData } from '@/db/brand-data';
 
 // Force dynamic rendering since we are fetching data
@@ -15,7 +15,6 @@ export default async function ShopPage() {
         const dbBrands = await db.select().from(brands).where(eq(brands.isActive, true));
 
         // Use DB data if available, otherwise might need seeding/fallback
-        // We preserve the same sorting logic as the API
         initialBrands = dbBrands.sort((a, b) => { // @ts-ignore
             if (a.isPopular !== b.isPopular) { // @ts-ignore
                 return a.isPopular ? -1 : 1;
@@ -24,7 +23,7 @@ export default async function ShopPage() {
         });
 
         if (initialBrands.length === 0) {
-            // Fallback to static data if DB is empty (similar to API error handling)
+            // Fallback to static data if DB is empty
             initialBrands = brandData.map((b, index) => ({
                 ...b,
                 id: index + 1, // Placeholder unique ID
@@ -35,7 +34,7 @@ export default async function ShopPage() {
             }));
         }
     } catch (error) {
-        console.error("Failed to fetch brands server-side:", error);
+        console.error("Failed to fetch initial data server-side:", error);
         // Fallback to static data on error
         initialBrands = brandData.map((b, index) => ({
             ...b,
@@ -48,6 +47,6 @@ export default async function ShopPage() {
     }
 
     return (
-        <ShopClient initialBrands={initialBrands} />
+        <ShopLandingClient initialBrands={initialBrands} />
     );
 }

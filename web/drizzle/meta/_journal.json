@@ -29,6 +29,20 @@
       "when": 1769099800561,
       "tag": "0003_concerned_terror",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1771260527494,
+      "tag": "0004_dynamic_variants",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1771397651688,
+      "tag": "0005_demonic_hulk",
+      "breakpoints": true
     }
   ]
 }

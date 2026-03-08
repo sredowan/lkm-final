@@ -1,10 +1,16 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import Link from 'next/link';
+import StatCard from '@/components/admin/StatCard';
+import { TagInput } from '@/components/admin/TagInput';
 import { useRouter, useParams } from 'next/navigation';
 import {
-    Save, ArrowLeft, Image as ImageIcon, Plus, X, Loader2,
-    Search, Tag, Package, BarChart3
+    Plus, Edit, Trash2, ChevronRight, ChevronDown, Package,
+    Smartphone, Search, LayoutGrid, List, MoreVertical,
+    FileText, Image as ImageIcon, CheckCircle, AlertCircle,
+    ArrowLeft, Save, Loader2, DollarSign, Tag, Power, Smartphone as PhoneIcon,
+    BarChart3, X
 } from 'lucide-react';
 import clsx from 'clsx';
 import RichTextEditor from '@/components/admin/RichTextEditor';
@@ -28,6 +34,7 @@ interface Product {
     isFeatured: boolean | null;
     metaTitle: string | null;
     metaDescription: string | null;
+    tags: string | null;
 }
 
 interface ProductImage {
@@ -39,13 +46,26 @@ interface ProductImage {
 
 interface ProductVariant {
     id?: number;
-    color: string;
-    storage: string;
+    name: string;
     sku: string;
     price: string;
     comparePrice: string;
     stock: number;
+    imageUrl: string;
     isActive: boolean;
+    optionIds: number[];
+}
+
+interface VariantOption {
+    id: number;
+    value: string;
+    typeId: number;
+}
+
+interface VariantType {
+    id: number;
+    name: string;
+    options: VariantOption[];
 }
 
 interface Category {
@@ -85,6 +105,8 @@ export default function ProductEditPage() {
     const [brands, setBrands] = useState<Brand[]>([]);
     const [images, setImages] = useState<ProductImage[]>([]);
     const [variants, setVariants] = useState<ProductVariant[]>([]);
+    const [globalVariantTypes, setGlobalVariantTypes] = useState<VariantType[]>([]);
+    const [selectedVariantTypeIds, setSelectedVariantTypeIds] = useState<number[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [form, setForm] = useState<Partial<Product>>({
@@ -104,6 +126,7 @@ export default function ProductEditPage() {
         isFeatured: false,
         metaTitle: '',
         metaDescription: '',
+        tags: '',
     });
 
     useEffect(() => {
@@ -112,7 +135,18 @@ export default function ProductEditPage() {
         }
         fetchCategories();
         fetchBrands();
+        fetchGlobalVariantTypes();
     }, [productId]);
+
+    const fetchGlobalVariantTypes = async () => {
+        try {
+            const res = await fetch('/api/admin/variants');
+            const data = await res.json();
+            setGlobalVariantTypes(data);
+        } catch (error) {
+            console.error('Error fetching variants:', error);
+        }
+    };
 
     const fetchProduct = async () => {
         try {
@@ -121,6 +155,19 @@ export default function ProductEditPage() {
             setForm(data.product);
             setImages(data.images || []);
             setVariants(data.variants || []);
+
+            // Derive selected variant types from existing variants
+            if (data.variants && data.variants.length > 0 && globalVariantTypes.length > 0) {
+                const firstVariantOptionIds = data.variants[0].optionIds || [];
+                const typeIds = new Set<number>();
+
+                firstVariantOptionIds.forEach((optId: number) => {
+                    const opt = globalVariantTypes.flatMap(t => t.options).find(o => o.id === optId);
+                    if (opt) typeIds.add(opt.typeId);
+                });
+
+                setSelectedVariantTypeIds(Array.from(typeIds));
+            }
         } catch (error) {
             console.error('Error fetching product:', error);
         } finally {
@@ -147,6 +194,23 @@ export default function ProductEditPage() {
             console.error('Error fetching brands:', error);
         }
     };
+
+    // Re-derive selected types when global types are loaded
+    useEffect(() => {
+        if (variants.length > 0 && globalVariantTypes.length > 0 && selectedVariantTypeIds.length === 0) {
+            const firstVariantOptionIds = variants[0].optionIds || [];
+            const typeIds = new Set<number>();
+
+            firstVariantOptionIds.forEach((optId: number) => {
+                const opt = globalVariantTypes.flatMap(t => t.options).find(o => o.id === optId);
+                if (opt) typeIds.add(opt.typeId);
+            });
+
+            if (typeIds.size > 0) {
+                setSelectedVariantTypeIds(Array.from(typeIds));
+            }
+        }
+    }, [globalVariantTypes, variants]);
 
     // Flatten category tree for dropdown with indentation
     const flattenCategories = (cats: Category[], depth = 0): { id: number; name: string; depth: number }[] => {
@@ -262,13 +326,14 @@ export default function ProductEditPage() {
                     isPrimary: img.isPrimary,
                 })),
                 variants: variants.map(v => ({
-                    color: v.color,
-                    storage: v.storage,
+                    name: v.name,
                     sku: v.sku,
                     price: v.price,
                     comparePrice: v.comparePrice,
                     stock: v.stock,
+                    imageUrl: v.imageUrl,
                     isActive: v.isActive,
+                    optionIds: v.optionIds
                 })),
             };
 
@@ -458,6 +523,14 @@ export default function ProductEditPage() {
                                             <option value="used">Used</option>
                                         </select>
                                     </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+                                        <TagInput
+                                            value={form.tags || ''}
+                                            onChange={(val) => setForm({ ...form, tags: val })}
+                                            placeholder="e.g. phone case, wireless charger"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
@@ -567,162 +640,245 @@ export default function ProductEditPage() {
 
                 {/* Variants Tab */}
                 {activeTab === 'variants' && (
-                    <div className="rounded-2xl bg-white p-6 border border-gray-100 shadow-sm">
-                        <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-lg font-semibold text-gray-900">Product Variants</h3>
-                            <button
-                                type="button"
-                                onClick={() => setVariants(prev => [...prev, {
-                                    color: '',
-                                    storage: '',
-                                    sku: '',
-                                    price: '',
-                                    comparePrice: '',
-                                    stock: 0,
-                                    isActive: true,
-                                }])}
-                                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
-                            >
-                                <Plus className="h-4 w-4" />
-                                Add Variant
-                            </button>
+                    <div className="space-y-6">
+                        {/* Variant Type Selector */}
+                        <div className="rounded-2xl bg-white p-6 border border-gray-100 shadow-sm">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Variant Configuration</h3>
+                            <p className="text-sm text-gray-500 mb-4">Select which variant types (e.g. Color, Size) apply to this product.</p>
+
+                            <div className="flex flex-wrap gap-3">
+                                {globalVariantTypes.map(type => {
+                                    const isSelected = selectedVariantTypeIds.includes(type.id);
+                                    return (
+                                        <button
+                                            key={type.id}
+                                            type="button"
+                                            onClick={() => {
+                                                if (isSelected) {
+                                                    setSelectedVariantTypeIds(prev => prev.filter(id => id !== type.id));
+                                                } else {
+                                                    setSelectedVariantTypeIds(prev => [...prev, type.id]);
+                                                }
+                                            }}
+                                            className={clsx(
+                                                "px-4 py-2 rounded-xl text-sm font-medium border transition-all",
+                                                isSelected
+                                                    ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                                                    : "bg-white text-gray-600 border-gray-200 hover:border-blue-200 hover:bg-blue-50"
+                                            )}
+                                        >
+                                            {type.name}
+                                        </button>
+                                    );
+                                })}
+                                <Link
+                                    href="/admin/variants"
+                                    className="px-4 py-2 rounded-xl text-sm font-medium border border-dashed border-gray-300 text-gray-500 hover:border-blue-500 hover:text-blue-500 transition-all"
+                                >
+                                    + Manage Variant Types
+                                </Link>
+                            </div>
                         </div>
 
-                        {variants.length === 0 ? (
-                            <div className="text-center py-12">
-                                <Tag className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-                                <p className="text-sm font-medium text-gray-900">No variants yet</p>
-                                <p className="text-xs text-gray-500 mt-1">Add color/storage combinations with different prices</p>
+                        <div className="rounded-2xl bg-white p-6 border border-gray-100 shadow-sm">
+                            <div className="flex items-center justify-between mb-6">
+                                <div>
+                                    <h3 className="text-lg font-semibold text-gray-900">Product Variations</h3>
+                                    <p className="text-sm text-gray-500 mt-1">Manage specific combinations and their details.</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setVariants(prev => [...prev, {
+                                        name: '',
+                                        sku: '',
+                                        price: form.price || '',
+                                        comparePrice: form.comparePrice || '',
+                                        stock: 0,
+                                        imageUrl: '',
+                                        isActive: true,
+                                        optionIds: []
+                                    }])}
+                                    className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20"
+                                >
+                                    <Plus className="h-4 w-4" />
+                                    Add Variation
+                                </button>
                             </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {variants.map((variant, index) => (
-                                    <div key={index} className="rounded-xl border border-gray-200 p-4">
-                                        <div className="flex items-center justify-between mb-3">
-                                            <span className="text-sm font-medium text-gray-700">Variant {index + 1}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => setVariants(prev => prev.filter((_, i) => i !== index))}
-                                                className="p-1 rounded-lg text-gray-400 hover:bg-rose-50 hover:text-rose-600 transition-colors"
-                                            >
-                                                <X className="h-4 w-4" />
-                                            </button>
-                                        </div>
-                                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                                            <div>
-                                                <label className="block text-xs font-medium text-gray-500 mb-1">Color</label>
-                                                <select
-                                                    value={variant.color}
-                                                    onChange={(e) => {
-                                                        const newVariants = [...variants];
-                                                        newVariants[index].color = e.target.value;
-                                                        setVariants(newVariants);
-                                                    }}
-                                                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                                                >
-                                                    <option value="">Select Color</option>
-                                                    <option value="Black">Black</option>
-                                                    <option value="White">White</option>
-                                                    <option value="Silver">Silver</option>
-                                                    <option value="Gold">Gold</option>
-                                                    <option value="Rose Gold">Rose Gold</option>
-                                                    <option value="Blue">Blue</option>
-                                                    <option value="Red">Red</option>
-                                                    <option value="Green">Green</option>
-                                                    <option value="Purple">Purple</option>
-                                                    <option value="Yellow">Yellow</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-medium text-gray-500 mb-1">Storage</label>
-                                                <select
-                                                    value={variant.storage}
-                                                    onChange={(e) => {
-                                                        const newVariants = [...variants];
-                                                        newVariants[index].storage = e.target.value;
-                                                        setVariants(newVariants);
-                                                    }}
-                                                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                                                >
-                                                    <option value="">Select Storage</option>
-                                                    <option value="32GB">32GB</option>
-                                                    <option value="64GB">64GB</option>
-                                                    <option value="128GB">128GB</option>
-                                                    <option value="256GB">256GB</option>
-                                                    <option value="512GB">512GB</option>
-                                                    <option value="1TB">1TB</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-medium text-gray-500 mb-1">SKU</label>
-                                                <input
-                                                    type="text"
-                                                    value={variant.sku}
-                                                    onChange={(e) => {
-                                                        const newVariants = [...variants];
-                                                        newVariants[index].sku = e.target.value;
-                                                        setVariants(newVariants);
-                                                    }}
-                                                    placeholder="e.g. IPH13-BLK-128"
-                                                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-medium text-gray-500 mb-1">Price ($)</label>
-                                                <input
-                                                    type="number"
-                                                    value={variant.price}
-                                                    onChange={(e) => {
-                                                        const newVariants = [...variants];
-                                                        newVariants[index].price = e.target.value;
-                                                        setVariants(newVariants);
-                                                    }}
-                                                    step="0.01"
-                                                    min="0"
-                                                    placeholder="0.00"
-                                                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-medium text-gray-500 mb-1">Compare Price ($)</label>
-                                                <input
-                                                    type="number"
-                                                    value={variant.comparePrice}
-                                                    onChange={(e) => {
-                                                        const newVariants = [...variants];
-                                                        newVariants[index].comparePrice = e.target.value;
-                                                        setVariants(newVariants);
-                                                    }}
-                                                    step="0.01"
-                                                    min="0"
-                                                    placeholder="0.00"
-                                                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-medium text-gray-500 mb-1">Stock</label>
-                                                <input
-                                                    type="number"
-                                                    value={variant.stock}
-                                                    onChange={(e) => {
-                                                        const newVariants = [...variants];
-                                                        newVariants[index].stock = parseInt(e.target.value) || 0;
-                                                        setVariants(newVariants);
-                                                    }}
-                                                    min="0"
-                                                    placeholder="0"
-                                                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
 
-                        <p className="mt-4 text-xs text-gray-500">
-                            Create variants for different color and storage combinations. Each variant can have its own price and stock.
-                        </p>
+                            {variants.length === 0 ? (
+                                <div className="text-center py-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                                    <Tag className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                                    <p className="text-sm font-medium text-gray-900">No variations yet</p>
+                                    <p className="text-xs text-gray-500 mt-1">Select types above and add variations below</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-4">
+                                    {variants.map((variant, index) => (
+                                        <div key={index} className="rounded-2xl border border-gray-200 p-6 bg-white hover:border-blue-200 transition-colors">
+                                            <div className="flex items-center justify-between mb-4 pb-4 border-b border-gray-100">
+                                                <div className="flex items-center gap-3">
+                                                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 text-xs font-bold">
+                                                        {index + 1}
+                                                    </span>
+                                                    <input
+                                                        type="text"
+                                                        value={variant.name}
+                                                        onChange={(e) => {
+                                                            const newVariants = [...variants];
+                                                            newVariants[index].name = e.target.value;
+                                                            setVariants(newVariants);
+                                                        }}
+                                                        placeholder="Variation title (e.g. Red / XL)"
+                                                        className="text-lg font-bold text-gray-900 focus:outline-none bg-transparent"
+                                                    />
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setVariants(prev => prev.filter((_, i) => i !== index))}
+                                                    className="p-2 rounded-xl text-gray-400 hover:bg-rose-50 hover:text-rose-600 transition-colors"
+                                                >
+                                                    <X className="h-5 w-5" />
+                                                </button>
+                                            </div>
+
+                                            <div className="grid gap-6 lg:grid-cols-4">
+                                                {/* Image Selection */}
+                                                <div className="lg:col-span-1">
+                                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Variant Image</label>
+                                                    <div className="relative group aspect-square rounded-xl bg-gray-50 border border-gray-100 overflow-hidden flex items-center justify-center">
+                                                        {variant.imageUrl ? (
+                                                            <img src={variant.imageUrl} className="h-full w-full object-contain p-2" />
+                                                        ) : (
+                                                            <ImageIcon className="h-8 w-8 text-gray-300" />
+                                                        )}
+                                                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-wrap items-center justify-center p-2 gap-2 overflow-y-auto">
+                                                            {images.map(img => (
+                                                                <button
+                                                                    key={img.id}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        const newVariants = [...variants];
+                                                                        newVariants[index].imageUrl = img.imageUrl;
+                                                                        setVariants(newVariants);
+                                                                    }}
+                                                                    className={clsx(
+                                                                        "h-10 w-10 rounded-lg border-2 overflow-hidden",
+                                                                        variant.imageUrl === img.imageUrl ? "border-blue-500" : "border-white"
+                                                                    )}
+                                                                >
+                                                                    <img src={img.imageUrl} className="h-full w-full object-cover" />
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="lg:col-span-3 space-y-4">
+                                                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                                        {selectedVariantTypeIds.map(typeId => {
+                                                            const type = globalVariantTypes.find(t => t.id === typeId);
+                                                            if (!type) return null;
+
+                                                            // Find current selected option for this type
+                                                            const currentOptionId = variant.optionIds.find(id =>
+                                                                type.options.some(opt => opt.id === id)
+                                                            );
+
+                                                            return (
+                                                                <div key={type.id}>
+                                                                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">{type.name}</label>
+                                                                    <select
+                                                                        value={currentOptionId || ''}
+                                                                        onChange={(e) => {
+                                                                            const optId = parseInt(e.target.value);
+                                                                            const newVariants = [...variants];
+                                                                            // Remove other options from this same type
+                                                                            const otherOptionIds = variant.optionIds.filter(id =>
+                                                                                !type.options.some(opt => opt.id === id)
+                                                                            );
+                                                                            newVariants[index].optionIds = [...otherOptionIds, optId];
+
+                                                                            // Auto-generate name if options are picked
+                                                                            const selectedOptNames = newVariants[index].optionIds.map(id => {
+                                                                                const opt = globalVariantTypes.flatMap(t => t.options).find(o => o.id === id);
+                                                                                return opt?.value;
+                                                                            }).filter(Boolean);
+                                                                            newVariants[index].name = selectedOptNames.join(' / ');
+
+                                                                            setVariants(newVariants);
+                                                                        }}
+                                                                        className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                                                                    >
+                                                                        <option value="">Select {type.name}</option>
+                                                                        {type.options.map(opt => (
+                                                                            <option key={opt.id} value={opt.id}>{opt.value}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                        <div>
+                                                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">SKU</label>
+                                                            <input
+                                                                type="text"
+                                                                value={variant.sku}
+                                                                onChange={(e) => {
+                                                                    const newVariants = [...variants];
+                                                                    newVariants[index].sku = e.target.value;
+                                                                    setVariants(newVariants);
+                                                                }}
+                                                                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Price ($)</label>
+                                                            <input
+                                                                type="number"
+                                                                value={variant.price}
+                                                                onChange={(e) => {
+                                                                    const newVariants = [...variants];
+                                                                    newVariants[index].price = e.target.value;
+                                                                    setVariants(newVariants);
+                                                                }}
+                                                                step="0.01"
+                                                                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Compare Price ($)</label>
+                                                            <input
+                                                                type="number"
+                                                                value={variant.comparePrice}
+                                                                onChange={(e) => {
+                                                                    const newVariants = [...variants];
+                                                                    newVariants[index].comparePrice = e.target.value;
+                                                                    setVariants(newVariants);
+                                                                }}
+                                                                step="0.01"
+                                                                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1.5">Stock</label>
+                                                            <input
+                                                                type="number"
+                                                                value={variant.stock}
+                                                                onChange={(e) => {
+                                                                    const newVariants = [...variants];
+                                                                    newVariants[index].stock = parseInt(e.target.value) || 0;
+                                                                    setVariants(newVariants);
+                                                                }}
+                                                                className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
 

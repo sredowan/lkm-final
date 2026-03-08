@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/db';
-import { products, productImages, productVariants } from '@/db/schema';
-import { desc, like, eq, and, or, lte, count, sql, inArray } from 'drizzle-orm';
+import { products, productImages, productVariants, globalTags } from '@/db/schema';
+import { desc, like, eq, and, or, lte, gte, count, sql, inArray } from 'drizzle-orm';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,17 +13,22 @@ export async function GET(request: NextRequest) {
         const search = searchParams.get('search') || '';
         const status = searchParams.get('status') || 'all';
         const categoryId = searchParams.get('categoryId');
+        const minPrice = searchParams.get('minPrice');
+        const maxPrice = searchParams.get('maxPrice');
+        const brand = searchParams.get('brand');
+        const tags = searchParams.get('tags'); // Comma separated
 
         // Build where conditions
         const conditions = [];
 
-        // Search filter
+        // Search filter (name, SKU, brand, tags)
         if (search) {
             conditions.push(
                 or(
                     like(products.name, `%${search}%`),
                     like(products.sku, `%${search}%`),
-                    like(products.brand, `%${search}%`)
+                    like(products.brand, `%${search}%`),
+                    like(products.tags, `%${search}%`)
                 )
             );
         }
@@ -31,6 +36,28 @@ export async function GET(request: NextRequest) {
         // Category filter
         if (categoryId && categoryId !== 'all') {
             conditions.push(eq(products.categoryId, parseInt(categoryId)));
+        }
+
+        // Brand filter (specific)
+        if (brand && brand !== 'all') {
+            conditions.push(eq(products.brand, brand));
+        }
+
+        // Price range
+        if (minPrice) {
+            conditions.push(gte(products.price, minPrice));
+        }
+        if (maxPrice) {
+            conditions.push(lte(products.price, maxPrice));
+        }
+
+        // Tags filter (exact matches)
+        if (tags) {
+            const tagList = tags.split(',').map(t => t.trim()).filter(Boolean);
+            if (tagList.length > 0) {
+                const tagConditions = tagList.map(tag => like(products.tags, `%${tag}%`));
+                conditions.push(and(...tagConditions));
+            }
         }
 
         // Status filter
@@ -115,9 +142,24 @@ export async function POST(request: NextRequest) {
             isFeatured: body.isFeatured ?? false,
             metaTitle: body.metaTitle || null,
             metaDescription: body.metaDescription || null,
+            tags: body.tags || null,
         });
 
         const productId = result[0].insertId;
+
+        // Handle global tags persistence
+        if (body.tags) {
+            const tagList = body.tags.split(',').map((t: string) => t.trim()).filter(Boolean);
+            if (tagList.length > 0) {
+                for (const tag of tagList) {
+                    try {
+                        await db.insert(globalTags).values({ name: tag }).onDuplicateKeyUpdate({ set: { name: tag } });
+                    } catch (e) {
+                        // Ignore errors like duplicate keys
+                    }
+                }
+            }
+        }
 
         // Handle images if provided
         if (body.images && Array.isArray(body.images) && body.images.length > 0) {

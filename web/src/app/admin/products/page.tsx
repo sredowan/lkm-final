@@ -6,9 +6,11 @@ import {
     Plus, Edit, Trash2, Search, Filter, ChevronLeft, ChevronRight,
     CheckSquare, Square, Image as ImageIcon, RefreshCw,
     Package, DollarSign, Layers, Box, Power, Star, X, Check,
-    MoreVertical, ExternalLink, Copy, Eye, EyeOff, TrendingUp, TrendingDown
+    MoreVertical, ExternalLink, Copy, Eye, EyeOff, TrendingUp, TrendingDown,
+    Tag as TagIcon, ChevronDown
 } from 'lucide-react';
 import clsx from 'clsx';
+import { TagInput } from '@/components/admin/TagInput';
 
 interface Product {
     id: number;
@@ -41,7 +43,7 @@ interface Category {
     slug: string;
 }
 
-type BulkAction = 'setPrice' | 'adjustPricePercent' | 'setCategory' | 'setStock' | 'adjustStock' | 'setActive' | 'setFeatured';
+type BulkAction = 'setPrice' | 'adjustPricePercent' | 'setCategory' | 'setStock' | 'adjustStock' | 'setActive' | 'setFeatured' | 'addTags' | 'removeTags';
 
 const statusColors = {
     active: 'bg-emerald-100 text-emerald-700',
@@ -56,6 +58,11 @@ export default function AdminProducts() {
     const [search, setSearch] = useState('');
     const [status, setStatus] = useState<string>('all');
     const [categoryFilter, setCategoryFilter] = useState<string>('all');
+    const [minPrice, setMinPrice] = useState<string>('');
+    const [maxPrice, setMaxPrice] = useState<string>('');
+    const [brandFilter, setBrandFilter] = useState<string>('all');
+    const [tagsFilter, setTagsFilter] = useState<string>('');
+    const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
     const [page, setPage] = useState(1);
     const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
     const [deleting, setDeleting] = useState(false);
@@ -90,6 +97,10 @@ export default function AdminProducts() {
                 search,
                 status,
                 ...(categoryFilter !== 'all' && { categoryId: categoryFilter }),
+                ...(minPrice && { minPrice }),
+                ...(maxPrice && { maxPrice }),
+                ...(brandFilter !== 'all' && { brand: brandFilter }),
+                ...(tagsFilter && { tags: tagsFilter }),
             });
             const res = await fetch(`/api/admin/products?${params}`);
             const json = await res.json();
@@ -106,7 +117,7 @@ export default function AdminProducts() {
         } finally {
             setLoading(false);
         }
-    }, [page, search, status, categoryFilter, categories]);
+    }, [page, search, status, categoryFilter, minPrice, maxPrice, brandFilter, tagsFilter, categories]);
 
     useEffect(() => {
         fetchProducts();
@@ -214,6 +225,8 @@ export default function AdminProducts() {
             adjustStock: 'Adjust Stock',
             setActive: 'Set Status',
             setFeatured: 'Set Featured',
+            addTags: 'Add Tags',
+            removeTags: 'Remove Tags',
         };
         return labels[action];
     };
@@ -227,6 +240,8 @@ export default function AdminProducts() {
             adjustStock: <TrendingDown className="h-4 w-4" />,
             setActive: <Power className="h-4 w-4" />,
             setFeatured: <Star className="h-4 w-4" />,
+            addTags: <Plus className="h-4 w-4" />,
+            removeTags: <X className="h-4 w-4" />,
         };
         return icons[action];
     };
@@ -356,11 +371,81 @@ export default function AdminProducts() {
                 {/* Refresh */}
                 <button
                     onClick={fetchProducts}
+                    title="Refresh List"
                     className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
                 >
                     <RefreshCw className={clsx('h-4 w-4', loading && 'animate-spin')} />
                 </button>
+
+                {/* Advanced Search Toggle */}
+                <button
+                    onClick={() => setShowAdvancedSearch(!showAdvancedSearch)}
+                    className={clsx(
+                        "inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium transition-all border",
+                        showAdvancedSearch
+                            ? "bg-blue-50 text-blue-600 border-blue-200"
+                            : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    )}
+                    title="Advanced Search"
+                >
+                    <Search className="h-4 w-4" />
+                    <ChevronDown className={clsx("h-3 w-3 transition-transform", showAdvancedSearch && "rotate-180")} />
+                </button>
             </div>
+
+            {/* Advanced Search Bar */}
+            {showAdvancedSearch && (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 rounded-2xl bg-gray-50 p-4 border border-gray-100 animate-in slide-in-from-top duration-200">
+                    {/* Price Range */}
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Price Range</label>
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="number"
+                                placeholder="Min"
+                                value={minPrice}
+                                onChange={(e) => setMinPrice(e.target.value)}
+                                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            />
+                            <span className="text-gray-400">-</span>
+                            <input
+                                type="number"
+                                placeholder="Max"
+                                value={maxPrice}
+                                onChange={(e) => setMaxPrice(e.target.value)}
+                                className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Brand Filter */}
+                    <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Brand</label>
+                        <input
+                            type="text"
+                            placeholder="All Brands"
+                            value={brandFilter === 'all' ? '' : brandFilter}
+                            onChange={(e) => setBrandFilter(e.target.value || 'all')}
+                            className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                        />
+                    </div>
+
+                    {/* Tags Filter */}
+                    <div className="flex flex-col gap-1.5 md:col-span-2">
+                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Tags (Comma Separated)</label>
+                        <div className="relative">
+                            <TagIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                            <input
+                                type="text"
+                                placeholder="Filter by tags..."
+                                value={tagsFilter}
+                                onChange={(e) => setTagsFilter(e.target.value)}
+                                className="w-full rounded-xl border border-gray-200 bg-white py-2 pl-9 pr-4 text-sm focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Bulk Actions Bar */}
             {selectedIds.size > 0 && (
@@ -423,7 +508,7 @@ export default function AdminProducts() {
 
                             {/* Action Type Buttons */}
                             <div className="grid grid-cols-2 gap-2">
-                                {(['setPrice', 'adjustPricePercent', 'setCategory', 'setStock', 'adjustStock', 'setActive', 'setFeatured'] as BulkAction[]).map((action) => (
+                                {(['setPrice', 'adjustPricePercent', 'setCategory', 'setStock', 'adjustStock', 'setActive', 'setFeatured', 'addTags', 'removeTags'] as BulkAction[]).map((action) => (
                                     <button
                                         key={action}
                                         onClick={() => { setBulkAction(action); setBulkValue(''); }}
@@ -501,6 +586,14 @@ export default function AdminProducts() {
                                         <option value="true">{bulkAction === 'setActive' ? 'Active' : 'Featured'}</option>
                                         <option value="false">{bulkAction === 'setActive' ? 'Inactive' : 'Not Featured'}</option>
                                     </select>
+                                )}
+
+                                {(bulkAction === 'addTags' || bulkAction === 'removeTags') && (
+                                    <TagInput
+                                        value={bulkValue}
+                                        onChange={(val) => setBulkValue(val)}
+                                        placeholder={bulkAction === 'addTags' ? "Tags to add..." : "Tags to remove..."}
+                                    />
                                 )}
                             </div>
 

@@ -20,11 +20,37 @@ import {
     Heart
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import clsx from "clsx";
 
 interface ProductImage {
     id: number;
     imageUrl: string;
     altText?: string;
+}
+
+interface ProductOption {
+    optionId: number;
+    optionValue: string;
+    typeId: number;
+    typeName: string;
+}
+
+interface ProductVariant {
+    id: number;
+    name: string;
+    sku: string;
+    price: string;
+    comparePrice: string;
+    stock: number;
+    imageUrl: string;
+    isActive: boolean;
+    options: ProductOption[];
+}
+
+interface VariantType {
+    id: number;
+    name: string;
+    options: { id: number; value: string }[];
 }
 
 interface Product {
@@ -40,29 +66,78 @@ interface Product {
     condition?: string;
     stock?: number;
     specs?: { specName: string; specValue: string }[];
+    variants?: ProductVariant[];
+    variantTypes?: VariantType[];
 }
 
 export default function ProductDetail({ product }: { product: Product }) {
     const router = useRouter();
     const { addItem, items } = useCart();
-    const [quantity, setQuantity] = useState(1);
-    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-    const [showStickyBar, setShowStickyBar] = useState(false);
-    const [addedToCart, setAddedToCart] = useState(false);
-    const ctaRef = useRef<HTMLDivElement>(null);
 
     // Get all images (primary + gallery)
     const allImages = product.images && product.images.length > 0
         ? product.images.map(img => img.imageUrl)
         : [product.imageUrl || "/placeholder.png"];
 
+    const [quantity, setQuantity] = useState(1);
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const [showStickyBar, setShowStickyBar] = useState(false);
+    const [addedToCart, setAddedToCart] = useState(false);
+    const ctaRef = useRef<HTMLDivElement>(null);
+
+    const [selectedOptions, setSelectedOptions] = useState<Record<number, number>>({});
+    const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
+
+    // Initial variant selection
+    useEffect(() => {
+        if (product.variants && product.variants.length > 0) {
+            const firstVariant = product.variants[0];
+            const initialOptions: Record<number, number> = {};
+            firstVariant.options.forEach(opt => {
+                initialOptions[opt.typeId] = opt.optionId;
+            });
+            setSelectedOptions(initialOptions);
+        }
+    }, [product.variants]);
+
+    // Update selected variant when options change
+    useEffect(() => {
+        if (product.variants) {
+            const variant = product.variants.find(v => {
+                return v.options.every(opt => selectedOptions[opt.typeId] === opt.optionId);
+            });
+            if (variant) {
+                setSelectedVariant(variant);
+                // Update image if variant has one
+                if (variant.imageUrl) {
+                    const idx = allImages.indexOf(variant.imageUrl);
+                    if (idx !== -1) {
+                        setSelectedImageIndex(idx);
+                    } else {
+                        // If variant image is not in gallery, we can't use index.
+                        // We'll handle this by using a primary image override variable.
+                    }
+                }
+            }
+        }
+    }, [selectedOptions, product.variants, allImages]);
+
+    // Calculate current main image
+    const mainImage = (selectedVariant && selectedVariant.imageUrl) || allImages[selectedImageIndex] || "/placeholder.png";
+
+    // Use variant specific details if selected
+    const displayPrice = selectedVariant ? Number(selectedVariant.price) : Number(product.price);
+    const displayComparePrice = selectedVariant ? Number(selectedVariant.comparePrice) : (Number(product.comparePrice) || 0);
+    const displayStock = selectedVariant ? selectedVariant.stock : (product.stock || 0);
+    const displayName = selectedVariant ? `${product.name} - ${selectedVariant.name}` : product.name;
+
     // Calculate discount
-    const discount = product.comparePrice && product.comparePrice > product.price
-        ? Math.round(((product.comparePrice - product.price) / product.comparePrice) * 100)
+    const discount = displayComparePrice && displayComparePrice > displayPrice
+        ? Math.round(((displayComparePrice - displayPrice) / displayComparePrice) * 100)
         : 0;
 
     // Afterpay calculation (4 payments)
-    const afterpayAmount = (product.price / 4).toFixed(2);
+    const afterpayAmount = (displayPrice / 4).toFixed(2);
 
     // Handle scroll for sticky bar
     useEffect(() => {
@@ -79,10 +154,10 @@ export default function ProductDetail({ product }: { product: Product }) {
 
     const handleAddToCart = () => {
         addItem({
-            id: String(product.id),
-            name: product.name,
-            price: product.price,
-            image: allImages[0]
+            id: selectedVariant ? `v${selectedVariant.id}` : String(product.id),
+            name: displayName,
+            price: displayPrice,
+            image: selectedVariant?.imageUrl || allImages[0]
         });
         setAddedToCart(true);
         setTimeout(() => setAddedToCart(false), 2000);
@@ -90,10 +165,10 @@ export default function ProductDetail({ product }: { product: Product }) {
 
     const handleBuyNow = () => {
         addItem({
-            id: String(product.id),
-            name: product.name,
-            price: product.price,
-            image: allImages[0]
+            id: selectedVariant ? `v${selectedVariant.id}` : String(product.id),
+            name: displayName,
+            price: displayPrice,
+            image: selectedVariant?.imageUrl || allImages[0]
         });
         router.push("/checkout");
     };
@@ -126,7 +201,7 @@ export default function ProductDetail({ product }: { product: Product }) {
                         {/* Main Image */}
                         <div className="relative aspect-square max-w-[500px] mx-auto bg-white rounded-2xl overflow-hidden group border border-gray-100">
                             <Image
-                                src={allImages[selectedImageIndex]}
+                                src={mainImage}
                                 alt={product.name}
                                 fill
                                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 500px"
@@ -220,11 +295,11 @@ export default function ProductDetail({ product }: { product: Product }) {
                         <div className="space-y-2">
                             <div className="flex items-baseline gap-3">
                                 <span className="text-3xl lg:text-4xl font-bold text-gray-900">
-                                    ${Number(product.price).toFixed(2)}
+                                    ${Number(displayPrice).toFixed(2)}
                                 </span>
-                                {product.comparePrice && product.comparePrice > product.price && (
+                                {displayComparePrice > displayPrice && (
                                     <span className="text-xl text-gray-400 line-through">
-                                        ${Number(product.comparePrice).toFixed(2)}
+                                        ${Number(displayComparePrice).toFixed(2)}
                                     </span>
                                 )}
                             </div>
@@ -236,11 +311,38 @@ export default function ProductDetail({ product }: { product: Product }) {
                             </div>
                         </div>
 
-                        {/* Description */}
-                        {product.shortDescription && (
-                            <p className="text-gray-600 leading-relaxed">
-                                {product.shortDescription}
-                            </p>
+                        {/* Variant Selectors */}
+                        {product.variantTypes && product.variantTypes.length > 0 && (
+                            <div className="space-y-6 py-4 border-y border-gray-100">
+                                {product.variantTypes.map((type) => (
+                                    <div key={type.id} className="space-y-3">
+                                        <div className="flex justify-between items-center">
+                                            <label className="text-sm font-bold text-gray-900 uppercase tracking-wider">
+                                                {type.name}: <span className="text-brand-blue">{type.options.find(o => o.id === selectedOptions[type.id])?.value}</span>
+                                            </label>
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {type.options.map((option) => {
+                                                const isSelected = selectedOptions[type.id] === option.id;
+                                                return (
+                                                    <button
+                                                        key={option.id}
+                                                        onClick={() => setSelectedOptions(prev => ({ ...prev, [type.id]: option.id }))}
+                                                        className={clsx(
+                                                            "px-4 py-2 rounded-xl text-sm font-medium transition-all border-2",
+                                                            isSelected
+                                                                ? "border-brand-blue bg-blue-50 text-brand-blue shadow-sm"
+                                                                : "border-gray-100 bg-white text-gray-600 hover:border-gray-200"
+                                                        )}
+                                                    >
+                                                        {option.value}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         )}
 
                         {/* Quantity Selector */}
@@ -262,9 +364,13 @@ export default function ProductDetail({ product }: { product: Product }) {
                                         <Plus className="w-4 h-4" />
                                     </button>
                                 </div>
-                                {product.stock !== undefined && (
-                                    <span className="text-sm text-gray-500">
-                                        {product.stock} available
+                                {displayStock > 0 ? (
+                                    <span className="text-sm text-green-600 font-medium">
+                                        {displayStock} units in stock
+                                    </span>
+                                ) : (
+                                    <span className="text-sm text-rose-600 font-medium">
+                                        Out of stock
                                     </span>
                                 )}
                             </div>
@@ -371,11 +477,11 @@ export default function ProductDetail({ product }: { product: Product }) {
                 <div className="container mx-auto flex items-center justify-between gap-4">
                     <div className="flex items-center gap-3">
                         <div className="relative w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                            <Image src={allImages[0]} alt="" fill className="object-contain" />
+                            <Image src={mainImage} alt="" fill className="object-contain" />
                         </div>
                         <div className="min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">{product.name}</p>
-                            <p className="text-lg font-bold text-brand-blue">${Number(product.price).toFixed(2)}</p>
+                            <p className="text-sm font-medium text-gray-900 truncate">{displayName}</p>
+                            <p className="text-lg font-bold text-brand-blue">${Number(displayPrice).toFixed(2)}</p>
                         </div>
                     </div>
                     <div className="flex gap-2">

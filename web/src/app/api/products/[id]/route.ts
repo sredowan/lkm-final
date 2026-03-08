@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { products, productVariants, productImages, categories } from "@/db/schema";
-import { eq, or } from "drizzle-orm";
+import { products, productVariants, productVariantOptions, variantTypes, variantOptions, productImages, categories } from "@/db/schema";
+import { eq, inArray } from "drizzle-orm";
 
 export async function GET(
     request: Request,
@@ -17,14 +17,12 @@ export async function GET(
 
         if (isNumeric) {
             // Legacy ID-based lookup for backwards compatibility
-            product = await db.query.products.findFirst({
-                where: eq(products.id, parseInt(params.id)),
-            });
+            const results = await db.select().from(products).where(eq(products.id, parseInt(params.id))).limit(1);
+            product = results[0];
         } else {
             // Slug-based lookup
-            product = await db.query.products.findFirst({
-                where: eq(products.slug, params.id),
-            });
+            const results = await db.select().from(products).where(eq(products.slug, params.id)).limit(1);
+            product = results[0];
         }
 
         if (!product) {
@@ -37,16 +35,55 @@ export async function GET(
         // Fetch category name
         let categoryName = null;
         if (product.categoryId) {
-            const category = await db.query.categories.findFirst({
-                where: eq(categories.id, product.categoryId),
-            });
-            categoryName = category?.name || null;
+            const results = await db.select().from(categories).where(eq(categories.id, product.categoryId)).limit(1);
+            categoryName = results[0]?.name || null;
         }
 
-        // Fetch variants
+        // Fetch variants with their options and types
         let variants: any[] = [];
+        let applicableVariantTypes: any[] = [];
         try {
-            variants = await db.select().from(productVariants).where(eq(productVariants.productId, product.id));
+            const rawVariants = await db.select().from(productVariants).where(eq(productVariants.productId, product.id));
+
+            if (rawVariants.length > 0) {
+                const variantIds = rawVariants.map(v => v.id);
+
+                // Fetch ALL linked options for ALL variants in one query
+                const allLinkedOptions = await db.select({
+                    variantId: productVariantOptions.variantId,
+                    optionId: productVariantOptions.optionId,
+                    optionValue: variantOptions.value,
+                    typeId: variantOptions.typeId,
+                    typeName: variantTypes.name
+                })
+                    .from(productVariantOptions)
+                    .innerJoin(variantOptions, eq(productVariantOptions.optionId, variantOptions.id))
+                    .innerJoin(variantTypes, eq(variantOptions.typeId, variantTypes.id))
+                    .where(inArray(productVariantOptions.variantId, variantIds));
+
+                // Map options back to variants
+                variants = rawVariants.map(v => ({
+                    ...v,
+                    options: allLinkedOptions.filter(lo => lo.variantId === v.id)
+                }));
+
+                // Get unique type IDs from the options
+                const uniqueTypeIds = [...new Set(allLinkedOptions.map(lo => lo.typeId))];
+
+                if (uniqueTypeIds.length > 0) {
+                    // Fetch all applicable variant types
+                    const types = await db.select().from(variantTypes).where(inArray(variantTypes.id, uniqueTypeIds));
+
+                    // Fetch options for each type to build the UI selectors
+                    applicableVariantTypes = await Promise.all(types.map(async (type) => {
+                        const options = await db.select().from(variantOptions).where(eq(variantOptions.typeId, type.id));
+                        return {
+                            ...type,
+                            options
+                        };
+                    }));
+                }
+            }
         } catch (e) {
             console.warn('Could not fetch variants:', e);
         }
@@ -63,6 +100,7 @@ export async function GET(
             ...product,
             categoryName,
             variants,
+            variantTypes: applicableVariantTypes,
             images
         });
     } catch (error) {

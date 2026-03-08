@@ -28,6 +28,7 @@ const navigation = [
     { name: 'Orders', href: '/admin/orders', icon: ShoppingCart },
     { name: 'Shipping', href: '/admin/shipping', icon: Truck },
     { name: 'Bookings', href: '/admin/bookings', icon: Calendar },
+    { name: 'Blogs', href: '/admin/blogs', icon: Layers }, // Using Layers for now, or something related
     { name: 'Customers', href: '/admin/customers', icon: Users },
     { name: 'Payments', href: '/admin/payments', icon: CreditCard },
     { name: 'Settings', href: '/admin/settings', icon: Settings },

@@ -3,7 +3,7 @@ import { db } from '@/db';
 import { products, productVariants, productImages, categories } from '@/db/schema';
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { eq, and, gte, lte, inArray, like, exists } from 'drizzle-orm';
+import { eq, and, gte, lte, inArray, like, exists, or } from 'drizzle-orm';
 
 export async function GET(request: Request) {
     try {
@@ -13,7 +13,12 @@ export async function GET(request: Request) {
         const minPrice = searchParams.get('minPrice');
         const maxPrice = searchParams.get('maxPrice');
         const condition = searchParams.get('condition');
-        const storage = searchParams.get('storage'); // Comma separated if multiple? Assuming single for now or multiple handled
+        const storage = searchParams.get('storage'); // Comma separated
+        const search = searchParams.get('search');
+        const tags = searchParams.get('tags');
+        const limit = parseInt(searchParams.get('limit') || '20');
+        const page = parseInt(searchParams.get('page') || '1');
+        const offset = (page - 1) * limit;
 
         let categoryId = null;
         if (categorySlug) {
@@ -46,38 +51,44 @@ export async function GET(request: Request) {
             }
         }
 
-        // Storage filtering requires checking variants
-        if (storage) {
-            // Subquery to find product IDs that have variants with formatted storage
-            // This is a bit complex with drizzle-orm raw SQL vs query builder.
-            // We'll use exists or inArray with a subquery if possible, or join.
-            // For simplicity with this ORM setup, let's filter after fetch if performance is ok (small catalog) 
-            // OR use a `where exists` clause.
-            const storageList = storage.split(',');
+        // Search filter (name, SKU, brand, tags)
+        if (search) {
+            conditions.push(
+                or(
+                    like(products.name, `%${search}%`),
+                    like(products.sku, `%${search}%`),
+                    like(products.brand, `%${search}%`),
+                    like(products.tags, `%${search}%`)
+                )
+            );
+        }
 
-            // Using exists with a correlated subquery is ideal but complex in simple Drizzle.
-            // Let's filter products where ID is in a list of IDs that match storage.
-            const matchingVariantProducts = await db.select({ productId: productVariants.productId })
-                .from(productVariants)
-                .where(inArray(productVariants.storage, storageList));
-
-            const matchingIds = matchingVariantProducts.map(v => v.productId);
-            if (matchingIds.length > 0) {
-                conditions.push(inArray(products.id, matchingIds));
-            } else {
-                // No products match storage, return empty immediately
-                return NextResponse.json([]);
+        // Tags filter (exact matches)
+        if (tags) {
+            const tagList = tags.split(',').map(t => t.trim()).filter(Boolean);
+            if (tagList.length > 0) {
+                const tagConditions = tagList.map(tag => like(products.tags, `%${tag}%`));
+                conditions.push(and(...tagConditions));
             }
         }
 
-        const allProducts = await db.select().from(products)
+        // Total count for pagination
+        const totalResult = await db.select({ count: db.$count(products) }).from(products)
             .where(and(eq(products.isActive, true), ...conditions));
+        const totalCount = totalResult[0]?.count || 0;
 
+        const allProducts = await db.select().from(products)
+            .where(and(eq(products.isActive, true), ...conditions))
+            .limit(limit)
+            .offset(offset);
 
         // Fetch variants for all products
         let allVariants: any[] = [];
         try {
-            allVariants = await db.select().from(productVariants);
+            if (allProducts.length > 0) {
+                const productIds = allProducts.map(p => p.id);
+                allVariants = await db.select().from(productVariants).where(inArray(productVariants.productId, productIds));
+            }
         } catch (e) {
             console.warn('Could not fetch variants:', e);
         }
@@ -85,7 +96,10 @@ export async function GET(request: Request) {
         // Fetch images for all products
         let allImages: any[] = [];
         try {
-            allImages = await db.select().from(productImages);
+            if (allProducts.length > 0) {
+                const productIds = allProducts.map(p => p.id);
+                allImages = await db.select().from(productImages).where(inArray(productImages.productId, productIds));
+            }
         } catch (e) {
             console.warn('Could not fetch images:', e);
         }
@@ -120,7 +134,12 @@ export async function GET(request: Request) {
             };
         });
 
-        return NextResponse.json(productsWithData);
+        return NextResponse.json({
+            products: productsWithData,
+            totalCount,
+            totalPages: Math.ceil(totalCount / limit),
+            currentPage: page
+        });
     } catch (error) {
         console.error("Failed to fetch products:", error);
         return NextResponse.json({ error: 'Failed to fetch products' }, { status: 500 });
